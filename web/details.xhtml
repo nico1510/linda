@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="WEB-INF/template/defaultLayout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+
+    <f:metadata>
+        <f:viewParam name="id" value="#{folderBean.folder}" converter="#{urlConverter}" />
+        <f:event listener="#{detailsBean.preRender}" type="preRenderView"/>
+    </f:metadata>
+
+    <ui:define name="head">
+        <title>Dataset #{folderBean.name}</title>
+    </ui:define>
+
+    <ui:define name="content">
+        <h:form id="form">
+            <p:panel  id="infopanel" header="Dataset &quot;#{folderBean.name}&quot;" >
+                <h:panelGrid columns="3" columnClasses="width20perc,width50perc,width30perc">
+                    <ui:fragment>
+                        <p:menu id="exampleMenu" style="width: 13.5em;">
+                            <p:submenu label="Information" id="file" >
+                                <p:menuitem id="Edit"
+                                            value="Edit"
+                                            update="@form"
+                                            ajax="true"
+                                            disabled="#{detailsBean.edit}"
+                                            actionListener="#{detailsBean.setEdit(true)}"
+                                            icon="ui-icon ui-icon-pencil">
+                                </p:menuitem>
+                                <p:menuitem   id="Save"
+                                              value="Save"
+                                              disabled="#{not detailsBean.edit}"
+                                              action="#{detailsBean.commitChanges}"
+                                              icon="ui-icon ui-icon-disk">
+                                </p:menuitem>
+
+                                <ui:param name="nodeid" value="#{folderBean.nodeid}" />
+
+                                <p:menuitem id="Delete"
+                                            value="Delete"
+                                            action="#{detailsBean.deleteDataset}"
+                                            icon="ui-icon ui-icon-trash"
+                                            includeViewParams="false"
+                                            disabled="#{not userBean.uploadedDatasets.contains(nodeid)}">
+                                </p:menuitem>
+                            </p:submenu>
+                            <p:submenu label="Tools" id="tools">
+                                <c:forEach items="#{detailsBean.tools}" var="tool">
+                                    <p:menuitem value="#{tool.displayname}"
+                                                action="#{detailsBean.generateFile(tool)}"
+                                                onclick="bar.show()"
+                                                disabled="#{detailsBean.toolDisabled(tool)}"
+                                                icon="ui-icon ui-icon-wrench"
+                                                update="@form">
+                                    </p:menuitem>
+                                </c:forEach>
+                            </p:submenu>
+                        </p:menu>
+                    </ui:fragment>
+                    <ui:fragment>
+                        <p:panel rendered="#{detailsBean.edit}">
+                            <h:panelGrid columns="2">
+                                Name <h:panelGroup>
+                                    <h:inputText value="#{folderBean.name}"
+                                                 id="name" required="true"
+                                                 requiredMessage="hier Name eingeben"/>
+                                    <h:message for="name"  />
+                                </h:panelGroup>
+                                Publisher <h:inputText value="#{folderBean.publisher}" />
+                                Source <h:inputText value="#{folderBean.source}" />
+                                Description <h:inputTextarea value="#{folderBean.description}" />
+                                Domain <h:inputText value="#{folderBean.domain}" />
+                                Example resources <h:inputTextarea value="#{folderBean.examples}"/>
+                                Tags <h:inputText value="#{folderBean.tags}" />
+                                Format <h:inputText value="#{folderBean.rdfformat}" />  
+                            </h:panelGrid>
+                        </p:panel>
+                        <h:panelGrid columns="2" rowClasses="oddrow,evenrow" columnClasses="width20perc,nothing" rendered="#{not detailsBean.edit}">
+                            Name : <h:outputText value="#{folderBean.name}"/>
+                            Publisher :<h:outputText value="#{folderBean.publisher}" />
+                            Source :<h:outputText value="#{folderBean.source}" />
+                            Domain : <h:outputText value="#{folderBean.domain}" />
+                            Example resources :<h:outputText value="#{folderBean.examples}"/>
+                            Triples :<h:outputText value="#{folderBean.folder.get('text_triples')}" />
+                            Classes :<h:outputText value="#{folderBean.folder.get('text_classes')}" />
+                            Properties :<h:outputText value="#{folderBean.folder.get('text_properties')}" />
+                            Dataset :  <h:link value="Download"
+                                               outcome="download"
+                                               rendered="#{not empty folderBean.folder.get('dataset')}">
+                                          <f:param name="nodeid" value="#{folderBean.folder.get('text_nodeid').replaceFirst('/','')}" />
+                                          <f:param name="fileid" value="dataset" />                            
+                                      </h:link>
+                            <h:outputText value="not available anymore" rendered="#{empty folderBean.folder.get('dataset')}" />
+                            <c:forEach items="#{detailsBean.tools}" var="tool">
+                                <h:outputText value="#{tool.displayname} :" />
+                                <h:panelGroup>
+                                    <h:panelGroup rendered="#{detailsBean.oneFileAvailable(tool.outputfiles)}">
+                                        <c:forEach items="#{tool.outputfiles}" var="outputfile">
+                                            <h:link value="Download"
+                                                    outcome="download"
+                                                    rendered="#{not empty folderBean.folder.get(outputfile)}">
+                                                <f:param name="nodeid" value="#{folderBean.folder.get('text_nodeid').replaceFirst('/','')}" />
+                                                <f:param name="fileid" value="#{folderBean.folder.get(outputfile).split('/')[fn:length(folderBean.folder.get(outputfile).split('/')) -1]}" />
+                                            </h:link>
+                                            <p:spacer width="3" />
+                                        </c:forEach>
+                                    </h:panelGroup>
+                                    <h:panelGroup rendered="#{detailsBean.subscribeButtonVisible(tool.toolID)}">
+                                        <h:outputText value="processing    " />
+                                        <p:commandButton value="abort"
+                                                         action="#{detailsBean.killProcess(tool.toolID)}"
+                                                         rendered="#{detailsBean.abortButtonVisible(tool.toolID)}"
+                                                         onclick="bar.hide()"
+                                                         icon="ui-icon ui-icon-cancel"
+                                                         update="@form">
+                                        </p:commandButton>
+                                        <p:commandButton value="subscribe"
+                                                         action="#{detailsBean.subscribe(tool.toolID)}"
+                                                         onclick="bar.show()"
+                                                         update="@form"
+                                                         icon="ui-icon ui-icon-mail-closed">
+                                        </p:commandButton>
+                                    </h:panelGroup>
+                                    <h:outputText value="not generated yet  #{detailsBean.generateDependencyText(tool)}" rendered="#{detailsBean.notGeneratedTextVisible(tool)}" />
+                                </h:panelGroup>
+                            </c:forEach>
+                        </h:panelGrid>
+                    </ui:fragment>
+                    <ui:fragment>
+                        <p:fieldset legend="Description" toggleable="true" toggleSpeed="500"  >
+                            <h:outputText value="#{folderBean.description}" style="text-wrap: normal"/>
+                        </p:fieldset> 
+                        <p:spacer height="5" />
+                        <p:fieldset legend="Tags" toggleable="true" toggleSpeed="500">
+                            <p:tagCloud model="#{detailsBean.tagModel}" style="border: 0px;"/>
+                        </p:fieldset>                            
+                    </ui:fragment>
+                </h:panelGrid>
+            </p:panel>
+        </h:form>
+        <p:notificationBar position="bottom" 
+                           effect="slide"
+                           styleClass="bottom"
+                           id="notificationPanel"
+                           widgetVar="bar"
+                           style="height: 150px; width: 100%; color: #2C3C4B; background-color: #ffc; border: 2px solid #D3DC43; z-index: 1; opacity: 0.9;">
+            <h:form>
+                <p:commandLink title="close" style="position: absolute; top: 20px; right: 50px;" styleClass="ui-icon ui-icon-closethick" onclick="bar.hide()" />
+                <h3>Subscribe</h3>
+                Add your email adress here if you want to be notified when processing is finished.
+                <h:panelGrid columns="3" cellspacing="20">
+                    Email:
+                    <p:inputText value="#{detailsBean.email}" />
+                    <p:commandButton value="Submit" action="#{detailsBean.submitEmail}" onclick="bar.hide()"/>
+                </h:panelGrid>
+            </h:form>
+        </p:notificationBar> 
+    </ui:define>
+</ui:composition>
+

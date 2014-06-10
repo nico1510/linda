@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="WEB-INF/template/defaultLayout.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="head">
+        <title>Feeds</title>
+    </ui:define>
+    <ui:define name="content">
+        <p:panel header="WeST - Blog">
+        <p:feedReader size="20" value="http://feeds.feedburner.com/westbloguniversityofkoblenz" var="feed">
+            <p:fieldset legend="#{feed.title}">  
+                <br />
+                <h:outputText value="#{feed.description.value}" escape="false"/>
+            </p:fieldset>
+            <p:separator />
+            <br />
+        </p:feedReader>
+        </p:panel>
+    </ui:define>
+</ui:composition>

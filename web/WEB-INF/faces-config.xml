@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- =========== FULL CONFIGURATION FILE ================================== -->
+
+<faces-config version="2.1"
+              xmlns="http://java.sun.com/xml/ns/javaee"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_2_1.xsd">
+    <navigation-rule>
+        <from-view-id>/datasets.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>datasets</from-outcome>
+            <to-view-id>/datasets.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>upload</from-outcome>
+            <to-view-id>/upload.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>details</from-outcome>
+            <to-view-id>/details.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>download</from-outcome>
+            <to-view-id>/download.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/upload.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>datasets</from-outcome>
+            <to-view-id>/datasets.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    <navigation-rule>
+        <from-view-id>/details.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>datasets</from-outcome>
+            <to-view-id>/datasets.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>details</from-outcome>
+            <to-view-id>/details.xhtml</to-view-id>
+        </navigation-case>
+        <converter>
+            <converter-for-class>java.util.LinkedHashMap</converter-for-class>
+            <converter-class>util.UrlConverter</converter-class>
+        </converter>
+    </navigation-rule>
+</faces-config>
