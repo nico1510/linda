@@ -26,6 +26,7 @@ public class IndexBean implements Serializable {
 
     @EJB
     private ContentBean contentBean;
+    
     private ArrayList<LinkedHashMap<String, String>> repositoryContent;
     private String queryString;
 
@@ -43,7 +44,7 @@ public class IndexBean implements Serializable {
             this.repositoryContent.add(copiedEntry);
         }
     }
-
+    
     /**
      * @return the repositoryContent
      */

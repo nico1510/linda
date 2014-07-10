@@ -7,51 +7,50 @@
             <minimum-ant-version>1.6.5</minimum-ant-version>
             <web-module-libraries>
                 <library dirs="200">
-                    <file>${file.reference.Exec.jar}</file>
+                    <file>${file.reference.Exec.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
                     <file>${file.reference.jcr-2.0.jar}</file>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.commons-compress-1.4.1.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.jsoup-1.7.1.jar}</file>
+                    <file>${file.reference.commons-fileupload-1.2.2.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.primefaces-3.4.2.jar}</file>
+                    <file>${file.reference.commons-io-2.4.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.commons-fileupload-1.2.2.jar}</file>
+                    <file>${file.reference.hot-sneaks-1.0.9.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.commons-io-2.4.jar}</file>
+                    <file>${file.reference.jdom.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.rome-1.0.jar}</file>
+                    <file>${file.reference.jsoup-1.7.1.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.jdom.jar}</file>
+                    <file>${file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.hot-sneaks-1.0.9.jar}</file>
+                    <file>${file.reference.prettyfaces-jsf2-3.3.3.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar}</file>
+                    <file>${file.reference.primefaces-3.4.2.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.commons-compress-1.4.1.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.prettyfaces-jsf2-3.3.3.jar}</file>
+                    <file>${file.reference.rome-1.0.jar-1}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
             </web-module-libraries>

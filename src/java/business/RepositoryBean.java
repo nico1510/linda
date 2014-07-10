@@ -7,9 +7,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +44,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
+import util.HashMapRepositoryVisitor;
 
 /**
  *
@@ -109,11 +113,11 @@ public class RepositoryBean implements RepositoryService, Serializable {
         if (mimeType.equals("application/x-gzip") | mimeType.equals("application/zip")) {
             in = decompressStream(mimeType, in, folder);
         }
-        
+
         String fileName = folder.get("text_filename");
         String rdfFormat = FilenameUtils.getExtension(fileName);
         folder.put("text_rdfformat", rdfFormat);
-        
+
         Session session = createSession(true);
         try {
             ValueFactory vf = session.getValueFactory();
@@ -292,26 +296,48 @@ public class RepositoryBean implements RepositoryService, Serializable {
         }
         return session;
     }
+    
+    private void walkAndRemove(List<String> activeFiles, String path) {
 
+        File root = new File(path);
+        File[] list = root.listFiles();
+
+        if (list == null) {
+            root.delete();
+            return;
+        }
+
+        for (File f : list) {
+            if (f.isDirectory()) {
+                walkAndRemove(activeFiles, f.getAbsolutePath());
+            } else {
+                if(!activeFiles.contains(f.getAbsoluteFile().toString())){
+                    f.delete();
+                }
+            }
+        }
+    }
+    
     @Override
     public void cleanup() {
-        /**
-         * try { JackrabbitRepositoryFactory rf = new RepositoryFactoryImpl();
-         * Properties prop = new Properties(); String DIR =
-         * "/home/glassfish/glassfish3/storage";
-         * prop.setProperty("org.apache.jackrabbit.repository.home", DIR);
-         * prop.setProperty("org.apache.jackrabbit.repository.conf", DIR +
-         * "/repository.xml"); JackrabbitRepository rep = (JackrabbitRepository)
-         * rf.getRepository(prop); RepositoryManager rm =
-         * rf.getRepositoryManager(rep); Session session = rep.login(new
-         * SimpleCredentials("", "".toCharArray())); DataStoreGarbageCollector
-         * gc = rm.createDataStoreGarbageCollector(); try { gc.mark();
-         * gc.sweep(); } finally { gc.close(); }
-         *
-         * session.logout(); rm.stop(); } catch (RepositoryException ex) {
-         * Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE,
-         * null, ex); }
-         */
+        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Running Repo Garbage Collection up");
+        // get all active files
+        HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
+        acceptVisitor(repVisitor, null);
+        ArrayList<LinkedHashMap<String, String>> repositoryContent = repVisitor.getList();
+        
+        ArrayList<String> fileNames = new ArrayList<String>();
+        for(LinkedHashMap<String, String> node:repositoryContent){
+            for(Entry<String, String> e:node.entrySet()){
+                if(!e.getKey().startsWith("text_")){
+                    fileNames.add(getPhysicalBinaryPath(e.getValue()));
+                }
+            }
+        }
+        
+        // delete inactive files
+        walkAndRemove(fileNames,"/home/glassfish/glassfish3/storage/repository/datastore");
+        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Finished Repo Garbage Collection up");
     }
 
     private InputStream decompressStream(String mimeType, InputStream in, LinkedHashMap<String, String> folder) {

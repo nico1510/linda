@@ -2,6 +2,15 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/home/nico/NetBeansProjects/webschemex/src/java/presentation/IndexBean.java</file>
+            <file>file:/home/nico/NetBeansProjects/webschemex/src/java/util/TreeNodeRepositoryVisitor.java</file>
+            <file>file:/home/nico/NetBeansProjects/webschemex/src/java/presentation/AdminBean.java</file>
+            <file>file:/home/nico/NetBeansProjects/webschemex/src/java/business/RepositoryBean.java</file>
+            <file>file:/home/nico/NetBeansProjects/webschemex/web/active.xhtml</file>
+            <file>file:/home/nico/NetBeansProjects/webschemex/src/java/presentation/DisplayBean.java</file>
+            <file>file:/home/nico/NetBeansProjects/webschemex/web/download.xhtml</file>
+            <file>file:/home/nico/NetBeansProjects/webschemex/src/java/util/UrlConverter.java</file>
+        </group>
     </open-files>
 </project-private>
