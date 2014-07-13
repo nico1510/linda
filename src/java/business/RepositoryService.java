@@ -35,5 +35,7 @@ public interface RepositoryService {
     public ProxyFile downloadFile(String propPath);
     
     public void cleanup();
+
+    public String connectTripleStore();
     
 }

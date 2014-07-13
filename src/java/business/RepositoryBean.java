@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -37,6 +42,7 @@ import javax.jcr.ValueFactory;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.version.VersionException;
+import javax.sql.DataSource;
 import model.ProxyFile;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -45,6 +51,9 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
 import util.HashMapRepositoryVisitor;
+import virtuoso.jdbc3.VirtuosoExtendedString;
+import virtuoso.jdbc3.VirtuosoRdfBox;
+import virtuoso.jdbc3.VirtuosoResultSet;
 
 /**
  *
@@ -57,6 +66,73 @@ public class RepositoryBean implements RepositoryService, Serializable {
     private Repository repository;
     @Inject
     Event<UpdateEvent> eventSource;
+
+    @Resource(name = "triplestore")
+    private DataSource triplestore;
+
+    @Override
+    public String connectTripleStore() {
+        Connection conn = null;
+        try {
+          conn = triplestore.getConnection();
+//        Statement st = conn.createStatement();
+//
+//        st.execute("sparql clear graph <mttest>");
+//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test1\" }");
+//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test2\" }");
+//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test3\" }");
+//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test4\" }");
+//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test5\" }");
+          Statement stmt = conn.createStatement ();
+          ResultSet rs;
+          String text  = "";
+          
+          boolean more = stmt.execute("sparql select * from <mttest> where { ?x ?y ?z }");
+            ResultSetMetaData data = stmt.getResultSet().getMetaData();
+            while (more) {
+                rs = stmt.getResultSet();
+                while (rs.next()) {
+                    for (int i = 1; i <= data.getColumnCount(); i++) {
+                        String s = rs.getString(i);
+                        Object o = rs.getObject(i);
+                        if (o instanceof VirtuosoExtendedString) // String representing an IRI
+                        {
+                            VirtuosoExtendedString vs = (VirtuosoExtendedString) o;
+                            if (vs.iriType == VirtuosoExtendedString.IRI && (vs.strType & 0x01) == 0x01) {
+                                text += "<" + vs.str + "> ";
+                            } else if (vs.iriType == VirtuosoExtendedString.BNODE) {
+                                text += "<" + vs.str + "> ";
+                            }
+                        } else if (o instanceof VirtuosoRdfBox) // Typed literal
+                        {
+                            VirtuosoRdfBox rb = (VirtuosoRdfBox) o;
+                            text += rb.rb_box + " lang=" + rb.getLang() + " type=" + rb.getType()+ " ";
+
+                        } else if (stmt.getResultSet().wasNull()) {
+                            text += "NULL ";
+                        } else //
+                        {
+                            text += s + " ";
+                        }
+
+                    }
+                }
+                more = stmt.getMoreResults();
+            }
+            
+            return text;
+
+        } catch (SQLException ex) {
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return "fail";
+    }
 
     @Override
     public String getPhysicalBinaryPath(String propPath) {
@@ -296,7 +372,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
         }
         return session;
     }
-    
+
     private void walkAndRemove(List<String> activeFiles, String path) {
 
         File root = new File(path);
@@ -311,13 +387,13 @@ public class RepositoryBean implements RepositoryService, Serializable {
             if (f.isDirectory()) {
                 walkAndRemove(activeFiles, f.getAbsolutePath());
             } else {
-                if(!activeFiles.contains(f.getAbsoluteFile().toString())){
+                if (!activeFiles.contains(f.getAbsoluteFile().toString())) {
                     f.delete();
                 }
             }
         }
     }
-    
+
     @Override
     public void cleanup() {
         Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Running Repo Garbage Collection up");
@@ -325,18 +401,18 @@ public class RepositoryBean implements RepositoryService, Serializable {
         HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
         acceptVisitor(repVisitor, null);
         ArrayList<LinkedHashMap<String, String>> repositoryContent = repVisitor.getList();
-        
+
         ArrayList<String> fileNames = new ArrayList<String>();
-        for(LinkedHashMap<String, String> node:repositoryContent){
-            for(Entry<String, String> e:node.entrySet()){
-                if(!e.getKey().startsWith("text_")){
+        for (LinkedHashMap<String, String> node : repositoryContent) {
+            for (Entry<String, String> e : node.entrySet()) {
+                if (!e.getKey().startsWith("text_")) {
                     fileNames.add(getPhysicalBinaryPath(e.getValue()));
                 }
             }
         }
-        
+
         // delete inactive files
-        walkAndRemove(fileNames,"/home/glassfish/glassfish3/storage/repository/datastore");
+        walkAndRemove(fileNames, "/home/glassfish/glassfish3/storage/repository/datastore");
         Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Finished Repo Garbage Collection up");
     }
 

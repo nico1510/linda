@@ -45,6 +45,10 @@ public class IndexBean implements Serializable {
         }
     }
     
+    public String testConn(){
+        return contentBean.testConn();
+    }
+    
     /**
      * @return the repositoryContent
      */

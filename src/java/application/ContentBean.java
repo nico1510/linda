@@ -37,6 +37,11 @@ public class ContentBean implements Serializable {
      */
     public ContentBean() {
     }
+    
+    
+    public String testConn(){
+        return repBean.connectTripleStore();
+    }
 
     /**
      * @return the repositoryContent
