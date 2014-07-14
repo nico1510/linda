@@ -71,56 +71,20 @@ public class RepositoryBean implements RepositoryService, Serializable {
     private DataSource triplestore;
 
     @Override
-    public String connectTripleStore() {
+    public void saveInTripleStore(String propPath, String nodeID) {
         Connection conn = null;
         try {
-          conn = triplestore.getConnection();
-//        Statement st = conn.createStatement();
-//
-//        st.execute("sparql clear graph <mttest>");
-//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test1\" }");
-//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test2\" }");
-//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test3\" }");
-//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test4\" }");
-//        st.execute("sparql insert into graph <mttest> { <xxx> <P01> \"test5\" }");
-          Statement stmt = conn.createStatement ();
-          ResultSet rs;
-          String text  = "";
-          
-          boolean more = stmt.execute("sparql select * from <mttest> where { ?x ?y ?z }");
-            ResultSetMetaData data = stmt.getResultSet().getMetaData();
-            while (more) {
-                rs = stmt.getResultSet();
-                while (rs.next()) {
-                    for (int i = 1; i <= data.getColumnCount(); i++) {
-                        String s = rs.getString(i);
-                        Object o = rs.getObject(i);
-                        if (o instanceof VirtuosoExtendedString) // String representing an IRI
-                        {
-                            VirtuosoExtendedString vs = (VirtuosoExtendedString) o;
-                            if (vs.iriType == VirtuosoExtendedString.IRI && (vs.strType & 0x01) == 0x01) {
-                                text += "<" + vs.str + "> ";
-                            } else if (vs.iriType == VirtuosoExtendedString.BNODE) {
-                                text += "<" + vs.str + "> ";
-                            }
-                        } else if (o instanceof VirtuosoRdfBox) // Typed literal
-                        {
-                            VirtuosoRdfBox rb = (VirtuosoRdfBox) o;
-                            text += rb.rb_box + " lang=" + rb.getLang() + " type=" + rb.getType()+ " ";
-
-                        } else if (stmt.getResultSet().wasNull()) {
-                            text += "NULL ";
-                        } else //
-                        {
-                            text += s + " ";
-                        }
-
-                    }
-                }
-                more = stmt.getMoreResults();
-            }
+            conn = triplestore.getConnection();
+            Statement stmt = conn.createStatement();
             
-            return text;
+            String schemafilePath = getPhysicalBinaryPath(propPath);
+
+            String insertStmtString = "DB.DBA.TTLP (file_to_string_output ('"
+                    + schemafilePath+ "'), '', '<"
+                    + nodeID.replaceAll("/", "") + ">', 512)";
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, insertStmtString);
+            
+            stmt.execute(insertStmtString);
 
         } catch (SQLException ex) {
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
@@ -131,7 +95,45 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        return "fail";
+    }
+
+    public String queryTripleStore(Statement stmt) throws SQLException {
+        ResultSet rs;
+        String text = "";
+        
+        boolean more = stmt.execute("sparql select * from <mttest> where { ?x ?y ?z }");
+        ResultSetMetaData data = stmt.getResultSet().getMetaData();
+        while (more) {
+            rs = stmt.getResultSet();
+            while (rs.next()) {
+                for (int i = 1; i <= data.getColumnCount(); i++) {
+                    String s = rs.getString(i);
+                    Object o = rs.getObject(i);
+                    if (o instanceof VirtuosoExtendedString) {
+                        VirtuosoExtendedString vs = (VirtuosoExtendedString) o;
+                        if (vs.iriType == VirtuosoExtendedString.IRI && (vs.strType & 0x01) == 0x01) {
+                            text += "<" + vs.str + "> ";
+                        } else if (vs.iriType == VirtuosoExtendedString.BNODE) {
+                            text += "<" + vs.str + "> ";
+                        } else {
+                            text += "\"" + vs.str + "\" ";
+                        }
+                    } else if (o instanceof VirtuosoRdfBox) {
+                        VirtuosoRdfBox rb = (VirtuosoRdfBox) o;
+                        text += rb.rb_box + " lang=" + rb.getLang() + " type=" + rb.getType() + " ";
+                        
+                    } else if (stmt.getResultSet().wasNull()) {
+                        text += "NULL ";
+                    } else {
+                        text += s;
+                    }
+                    
+                }
+            }
+            more = stmt.getMoreResults();
+        }
+        
+        return text;
     }
 
     @Override
@@ -233,7 +235,6 @@ public class RepositoryBean implements RepositoryService, Serializable {
             Binary bfile = vf.createBinary(in);
 
             Node datasetNode = session.getNode(nodeID);
-
             Property metaProp = datasetNode.setProperty(fileName, bfile);
 
             session.save();
@@ -374,7 +375,6 @@ public class RepositoryBean implements RepositoryService, Serializable {
     }
 
     private void walkAndRemove(List<String> activeFiles, String path) {
-
         File root = new File(path);
         File[] list = root.listFiles();
 
@@ -396,7 +396,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
 
     @Override
     public void cleanup() {
-        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Running Repo Garbage Collection up");
+        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Running Repo Garbage Collection");
         // get all active files
         HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
         acceptVisitor(repVisitor, null);
@@ -413,7 +413,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
 
         // delete inactive files
         walkAndRemove(fileNames, "/home/glassfish/glassfish3/storage/repository/datastore");
-        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Finished Repo Garbage Collection up");
+        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Finished Repo Garbage Collection");
     }
 
     private InputStream decompressStream(String mimeType, InputStream in, LinkedHashMap<String, String> folder) {

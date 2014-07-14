@@ -36,6 +36,6 @@ public interface RepositoryService {
     
     public void cleanup();
 
-    public String connectTripleStore();
+    public void saveInTripleStore(String propPath, String nodeID);
     
 }

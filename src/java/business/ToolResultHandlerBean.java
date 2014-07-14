@@ -114,13 +114,15 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
 
     }
 
-    public void handleSchemaResult() {
+    public void handleSchemaResult(String nodeID, ArrayList<String> outputFiles) {
+        String schemaFile = outputFiles.get(0);  // this is the schema.nt see tools.xml
+        repBean.saveInTripleStore(nodeID + File.separator + schemaFile, nodeID);
     }
 
-    private void handleFcaResult() {
+    private void handleFcaResult(String nodeID, ArrayList<String> outputFiles) {
     }
 
-    private void handleMutualResult() {
+    private void handleMutualResult(String nodeID, ArrayList<String> outputFiles) {
     }
 
     private void useResult(String toolID, ArrayList<String> outputFiles, String nodeID) {
@@ -135,13 +137,13 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
                 handleVoidResult(nodeID, outputFiles);
                 break;
             case "schemex":
-                handleSchemaResult();
+                handleSchemaResult(nodeID, outputFiles);
                 break;
             case "fca":
-                handleFcaResult();
+                handleFcaResult(nodeID, outputFiles);
                 break;
             case "mutual":
-                handleMutualResult();
+                handleMutualResult(nodeID, outputFiles);
                 break;
         }
     }

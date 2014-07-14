@@ -9,7 +9,9 @@ import Events.JobStartedEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,83 +64,84 @@ public class ToolExecutor implements MessageListener {
             String launchInfo = mmsg.getString("launchInfo");
             String format = mmsg.getString("format");
             launchTool(nodeID, launchInfo, format);
-            Logger.getLogger(ToolExecutor.class.getName()).log(Level.INFO, nodeID+"_"+launchInfo+"_"+format);
+            Logger.getLogger(ToolExecutor.class.getName()).log(Level.INFO, nodeID + "_" + launchInfo + "_" + format);
 
         } catch (JMSException ex) {
             Logger.getLogger(ToolExecutor.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-
 
     }
 
     public void launchTool(String nodeID, String launchInfo, String format) {
 
         boolean eventThrown = false;
-        Document doc = Jsoup.parse(launchInfo, "", Parser.xmlParser());
-        String toolID = doc.getElementsByTag("tool").attr("id");
-        Elements arguments = doc.getElementsByTag("arguments").first().children();
-        Boolean bash = false;
-        if (!doc.getElementsByTag("bash").isEmpty()) {
-            bash = true;
-        }
-        
-        String acceptedFormats = doc.getElementsByTag("rdfFormat").first().text();
-        Boolean convert = !acceptedFormats.contains(format);
+        String toolID = "";
+        File tempDir = null;
 
-        Long timeout = Long.parseLong(doc.getElementsByTag("timeout").first().text());
-        CommandLine cmdLine = new CommandLine(arguments.first().text());
+        try {
+            Document doc = Jsoup.parse(launchInfo, "", Parser.xmlParser());
+            toolID = doc.getElementsByTag("tool").attr("id");
+            Elements arguments = doc.getElementsByTag("arguments").first().children();
+            Boolean bash = false;
+            if (!doc.getElementsByTag("bash").isEmpty()) {
+                bash = true;
+            }
 
-        //Generate unique tempfolder name
-        String id = UUID.randomUUID().toString();
+            String acceptedFormats = doc.getElementsByTag("rdfFormat").first().text();
+            Boolean convert = !acceptedFormats.contains(format);
 
-        //directory where all tools and scripts are stored
-        File workingDir = new File("/home/glassfish/glassfish3/tools");
+            Long timeout = Long.parseLong(doc.getElementsByTag("timeout").first().text());
+            CommandLine cmdLine = new CommandLine(arguments.first().text());
 
-        //Create temporary directory for result files
-        String tempDirPath = workingDir + File.separator + toolID + id;
-        new File(tempDirPath).mkdir();
-        File tempDir = new File(tempDirPath);
+            //Generate unique tempfolder name
+            String id = UUID.randomUUID().toString();
+            Date date = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd_MM_YY_HH_mm_ss");
+            String formattedDate = sdf.format(date);
 
-        if (convert) {
-            Elements inputElements = doc.getElementsByTag("input");
-            for (int i = 0; i < inputElements.size(); i++) {
-                String isFileString = inputElements.get(i).attr("file");
-                if (!isFileString.equals("false")) {
-                    String inputFilePath = inputElements.get(i).text();
-                    try {
-                        String convertedPath = Converter.convert(inputFilePath, tempDir + File.separator, format, acceptedFormats);
-                        inputElements.get(i).text(convertedPath);
-                    } catch (FileNotFoundException ex) {
-                        Logger.getLogger(ToolExecutor.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IOException ex) {
-                        Logger.getLogger(ToolExecutor.class.getName()).log(Level.SEVERE, null, ex);
+            //Create temporary directory for result files
+            String tempDirPath = "/home/glassfish/glassfish3/tools" + File.separator + toolID + formattedDate + id;
+            tempDir = new File(tempDirPath);
+            tempDir.mkdir();
+
+            if (convert) {
+                Elements inputElements = doc.getElementsByTag("input");
+                for (int i = 0; i < inputElements.size(); i++) {
+                    String isFileString = inputElements.get(i).attr("file");
+                    if (!isFileString.equals("false")) {
+                        String inputFilePath = inputElements.get(i).text();
+                        try {
+                            String convertedPath = Converter.convert(inputFilePath, tempDir + File.separator, format, acceptedFormats);
+                            inputElements.get(i).text(convertedPath);
+                        } catch (FileNotFoundException ex) {
+                            Logger.getLogger(ToolExecutor.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                            Logger.getLogger(ToolExecutor.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                 }
             }
-        }
 
-        for (int i = 1; i < arguments.size(); i++) {
-            cmdLine.addArgument(arguments.get(i).text());
-        }
+            for (int i = 1; i < arguments.size(); i++) {
+                cmdLine.addArgument(arguments.get(i).text());
+            }
 
-        DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-        DefaultExecutor executor = new DefaultExecutor();
-        ExecuteWatchdog watchdog;
-        if (bash) {
-            watchdog = new ExecuteWatchdogBash(timeout);
-        } else {
-            watchdog = new ExecuteWatchdog(timeout);
-        }
-        executor.setWatchdog(watchdog);
-        executor.setWorkingDirectory(tempDir);
-        //     executor.getStreamHandler().stop();
-        watchdogProducedSource.fire(new JobStartedEvent(watchdog, nodeID + File.separator + toolID));
+            DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+            DefaultExecutor executor = new DefaultExecutor();
+            ExecuteWatchdog watchdog;
+            if (bash) {
+                watchdog = new ExecuteWatchdogBash(timeout);
+            } else {
+                watchdog = new ExecuteWatchdog(timeout);
+            }
+            executor.setWatchdog(watchdog);
+            executor.setWorkingDirectory(tempDir);
+            //     executor.getStreamHandler().stop();
+            watchdogProducedSource.fire(new JobStartedEvent(watchdog, nodeID + File.separator + toolID));
 
-        try {
             executor.execute(cmdLine, resultHandler);
             resultHandler.waitFor();
-            
+
             ArrayList<String> filePaths = new ArrayList<String>();
 
             if (!watchdog.killedProcess()) {
@@ -148,7 +151,7 @@ public class ToolExecutor implements MessageListener {
                     String fileToSave = tempDir + File.separator + fileName;
                     filePaths.add(fileToSave);
                 }
-                jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, true, filePaths,tempDir.getAbsolutePath() ));
+                jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, true, filePaths, tempDir.getAbsolutePath()));
                 eventThrown = true;
             }
 
