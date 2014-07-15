@@ -47,4 +47,9 @@
 		<pattern value="/datasets/#{nodeid}/#{toolid}/#{uri}" />
 		<view-id value="/faces/display.xhtml" />
 	</url-mapping>
+        
+	<url-mapping id="triples">
+		<pattern value="/triples/#{nodeid}" />
+		<view-id value="/faces/triples.xhtml" />
+	</url-mapping>
 </pretty-config>

@@ -38,4 +38,6 @@ public interface RepositoryService {
 
     public void saveInTripleStore(String propPath, String nodeID);
     
+    public String queryTripleStore(String nodeID);
+    
 }

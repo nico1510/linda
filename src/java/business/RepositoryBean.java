@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -42,6 +43,7 @@ import javax.jcr.ValueFactory;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.version.VersionException;
+import javax.servlet.jsp.PageContext;
 import javax.sql.DataSource;
 import model.ProxyFile;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -76,14 +78,14 @@ public class RepositoryBean implements RepositoryService, Serializable {
         try {
             conn = triplestore.getConnection();
             Statement stmt = conn.createStatement();
-            
+
             String schemafilePath = getPhysicalBinaryPath(propPath);
 
             String insertStmtString = "DB.DBA.TTLP (file_to_string_output ('"
-                    + schemafilePath+ "'), '', '<"
-                    + nodeID.replaceAll("/", "") + ">', 512)";
+                    + schemafilePath + "'), '', '"
+                    + nodeID.replaceAll("/", "") + "', 512)";
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, insertStmtString);
-            
+
             stmt.execute(insertStmtString);
 
         } catch (SQLException ex) {
@@ -97,43 +99,61 @@ public class RepositoryBean implements RepositoryService, Serializable {
         }
     }
 
-    public String queryTripleStore(Statement stmt) throws SQLException {
+    @Override
+    public String queryTripleStore(String nodeID){
         ResultSet rs;
-        String text = "";
-        
-        boolean more = stmt.execute("sparql select * from <mttest> where { ?x ?y ?z }");
-        ResultSetMetaData data = stmt.getResultSet().getMetaData();
-        while (more) {
-            rs = stmt.getResultSet();
-            while (rs.next()) {
-                for (int i = 1; i <= data.getColumnCount(); i++) {
-                    String s = rs.getString(i);
-                    Object o = rs.getObject(i);
-                    if (o instanceof VirtuosoExtendedString) {
-                        VirtuosoExtendedString vs = (VirtuosoExtendedString) o;
-                        if (vs.iriType == VirtuosoExtendedString.IRI && (vs.strType & 0x01) == 0x01) {
-                            text += "<" + vs.str + "> ";
-                        } else if (vs.iriType == VirtuosoExtendedString.BNODE) {
-                            text += "<" + vs.str + "> ";
+        nodeID = nodeID.replaceAll("/", "");
+        StringBuilder response = new StringBuilder();
+
+        Connection conn = null;
+        try {
+            conn = triplestore.getConnection();
+            Statement stmt = conn.createStatement();
+
+            boolean more = stmt.execute("sparql select * from <" + nodeID + "> where { ?x ?y ?z }");
+            ResultSetMetaData data = stmt.getResultSet().getMetaData();
+            while (more) {
+                rs = stmt.getResultSet();
+                while (rs.next()) {
+                    for (int i = 1; i <= data.getColumnCount(); i++) {
+                        String s = rs.getString(i);
+                        Object o = rs.getObject(i);
+                        if (o instanceof VirtuosoExtendedString) {
+                            VirtuosoExtendedString vs = (VirtuosoExtendedString) o;
+                            if (vs.iriType == VirtuosoExtendedString.IRI && (vs.strType & 0x01) == 0x01) {
+                                response.append("<" + vs.str + "> ");
+                            } else if (vs.iriType == VirtuosoExtendedString.BNODE) {
+                                response.append("<" + vs.str + "> ");
+                            } else {
+                                response.append("\"" + vs.str + "\" ");
+                            }
+                        } else if (o instanceof VirtuosoRdfBox) {
+                            VirtuosoRdfBox rb = (VirtuosoRdfBox) o;
+                            response.append(rb.rb_box + " lang=" + rb.getLang() + " type=" + rb.getType() + " ");
+
+                        } else if (stmt.getResultSet().wasNull()) {
+                            response.append("NULL ");
                         } else {
-                            text += "\"" + vs.str + "\" ";
+                            response.append(s+" ");
                         }
-                    } else if (o instanceof VirtuosoRdfBox) {
-                        VirtuosoRdfBox rb = (VirtuosoRdfBox) o;
-                        text += rb.rb_box + " lang=" + rb.getLang() + " type=" + rb.getType() + " ";
-                        
-                    } else if (stmt.getResultSet().wasNull()) {
-                        text += "NULL ";
-                    } else {
-                        text += s;
+
                     }
-                    
+                    response.append(".\n");
                 }
+                more = stmt.getMoreResults();
             }
-            more = stmt.getMoreResults();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-        
-        return text;
+
+        return response.toString();
     }
 
     @Override

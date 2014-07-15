@@ -110,6 +110,11 @@ public class DisplayBean {
     public void setAnswer(String answer) {
         this.answer = answer;
     }
+    
+    
+    public void retrieveTriples() {
+        setAnswer(repBean.queryTripleStore(nodeID));
+    }
 
     public void resolveURI() {
         try {
@@ -153,7 +158,7 @@ public class DisplayBean {
                 Logger.getLogger(DisplayBean.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            answer = writer.toString();
+            setAnswer(writer.toString());
 
 
         } catch (QueryEvaluationException ex) {
