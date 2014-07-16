@@ -9,14 +9,12 @@ import business.RepositoryService;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.enterprise.event.Observes;
-import javax.jcr.Session;
 import util.HashMapRepositoryVisitor;
 
 /**
@@ -63,8 +61,7 @@ public class ContentBean implements Serializable {
    @Lock(LockType.WRITE)
     public void updateContent(@Observes UpdateEvent event) {
         HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
-        Session test = repBean.createSession(false);
-        repBean.acceptVisitor(repVisitor,test);
+        repBean.acceptVisitor(repVisitor,null);
         this.repositoryContent = repVisitor.getList();
     }
 
