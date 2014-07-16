@@ -14,6 +14,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
+import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
 import javax.jms.Queue;
@@ -75,6 +76,7 @@ public class ToolLauncherBean {
                 QueueConnection connection = factory.createQueueConnection();
                 QueueSession session = connection.createQueueSession(false, QueueSession.AUTO_ACKNOWLEDGE);
                 QueueSender sender = session.createSender(queue);
+                sender.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
                 MapMessage msg = session.createMapMessage();
                 msg.setString("text_nodeid", nodeID);
                 msg.setString("launchInfo", launchInfo);

@@ -49,7 +49,7 @@
 	</url-mapping>
         
 	<url-mapping id="triples">
-		<pattern value="/triples/#{nodeid}" />
+		<pattern value="/#{nodeid}" />
 		<view-id value="/faces/triples.xhtml" />
 	</url-mapping>
 </pretty-config>
