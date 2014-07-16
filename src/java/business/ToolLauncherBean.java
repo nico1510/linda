@@ -25,7 +25,6 @@ import javax.jms.QueueSession;
 import org.apache.commons.io.FilenameUtils;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import presentation.DetailsBean;
 
 /**
  *
@@ -87,14 +86,14 @@ public class ToolLauncherBean {
 
             } catch (JMSException ex) {
                 jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, false, null, null));
-                Logger.getLogger(DetailsBean.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (JobAlreadyRunningException ex) {
             jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, false, null, null));
-            Logger.getLogger(DetailsBean.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NullPointerException ex) {
             jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, false, null, null));
-            Logger.getLogger(DetailsBean.class.getName()).log(Level.SEVERE, null, "NullPointException in ToolLauncherBean, so there's probably something wrong with tools.xml " + ex);
+            Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, "NullPointException in ToolLauncherBean, so there's probably something wrong with tools.xml " + ex);
         }
     }
 }
