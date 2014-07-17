@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+    <h:head>
+        <ui:insert name="head">
+            <title>LinDA - Online analysis tool</title>
+        </ui:insert>
+    </h:head>
+    <h:body>
+        <h:outputStylesheet name="css/default.css" />
+        <p:layout fullPage="true">  
+            <p:layoutUnit position="north" size="100" header="LinDA - Online analysis tool" collapsible="true" style="max-width: 1005px; min-width: 1000px;">  
+                    <ui:insert name="header" >
+                        <h:panelGroup style="position: relative; left: 20px; top: 15px;">
+                            <p:button value="Home" outcome="index" />
+                            <p:spacer width="10" />
+                            <p:button value="Datasets" outcome="datasets" />
+                            <p:spacer width="10" />
+                            <p:button value="Upload" outcome="upload" />
+                            <p:spacer width="10" />
+                            <p:button value="Blog" outcome="feeds" />
+                            <p:spacer width="10" />
+                            <p:button value="About" outcome="about" />
+                            <p:spacer width="10" />
+                            <p:button value="Admin" outcome="admin" rendered="false" />
+                        </h:panelGroup>
+                        <h:panelGroup style="position: absolute; right: 20px; top: 15px;" >
+                            <h:form>
+                                <p:inputText value="#{indexBean.queryString}" id="searchinput"/>
+                                <p:watermark for="searchinput" value="Search for datasets" />  
+                                <p:spacer width="5" />
+                                <p:commandButton value="Search" type="submit" action="#{indexBean.search}" id="search" title="Search for datasets"/> 
+                            </h:form>
+                        </h:panelGroup>
+                    </ui:insert>
+                </p:layoutUnit>  
+            <p:layoutUnit position="center" style="max-width: 1005px; min-width: 1000px;">  
+                <ui:insert name="content" >
+                    Content
+                </ui:insert>
+            </p:layoutUnit>  
+        </p:layout>
+    </h:body>
+</html>
+

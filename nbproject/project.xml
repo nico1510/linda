@@ -1,69 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://www.netbeans.org/ns/project/1">
-    <type>org.netbeans.modules.web.project</type>
+    <type>org.netbeans.modules.j2ee.earproject</type>
     <configuration>
-        <data xmlns="http://www.netbeans.org/ns/web-project/3">
-            <name>webschemex</name>
+        <data xmlns="http://www.netbeans.org/ns/j2ee-earproject/2">
+            <name>lindaejb</name>
             <minimum-ant-version>1.6.5</minimum-ant-version>
-            <web-module-libraries>
-                <library dirs="200">
-                    <file>${file.reference.Exec.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
+            <web-module-libraries/>
+            <web-module-additional-libraries>
+                <library>
+                    <file>${reference.lindaejb-war.dist-ear}</file>
+                    <path-in-war>/</path-in-war>
                 </library>
-                <library dirs="200">
-                    <file>${file.reference.jcr-2.0.jar}</file>
+                <library>
+                    <file>${reference.lindaejb-ejb.dist-ear}</file>
+                    <path-in-war>/</path-in-war>
                 </library>
-                <library dirs="200">
-                    <file>${file.reference.commons-compress-1.4.1.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.commons-fileupload-1.2.2.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.commons-io-2.4.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.hot-sneaks-1.0.9.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.jdom.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.jsoup-1.7.1.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.prettyfaces-jsf2-3.3.3.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.primefaces-3.4.2.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.rome-1.0.jar-1}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
-                    <file>${file.reference.virtjdbc3.jar}</file>
-                </library>
-            </web-module-libraries>
-            <web-module-additional-libraries/>
-            <source-roots>
-                <root id="src.dir"/>
-            </source-roots>
-            <test-roots>
-                <root id="test.src.dir"/>
-            </test-roots>
+            </web-module-additional-libraries>
         </data>
+        <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
+            <reference>
+                <foreign-project>lindaejb-ejb</foreign-project>
+                <artifact-type>j2ee_ear_archive</artifact-type>
+                <script>build.xml</script>
+                <target>dist-ear</target>
+                <clean-target>clean-ear</clean-target>
+                <id>dist-ear</id>
+            </reference>
+            <reference>
+                <foreign-project>lindaejb-war</foreign-project>
+                <artifact-type>j2ee_ear_archive</artifact-type>
+                <script>build.xml</script>
+                <target>dist-ear</target>
+                <clean-target>clean-ear</clean-target>
+                <id>dist-ear</id>
+            </reference>
+        </references>
     </configuration>
 </project>
