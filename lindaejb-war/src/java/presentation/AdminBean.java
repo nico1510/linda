@@ -5,12 +5,16 @@
 package presentation;
 
 import Exceptions.JobAlreadyKilledException;
+import business.ContentBean;
 import business.JobControlBean;
 import business.RepositoryService;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -19,8 +23,8 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import model.Job;
 import model.ProxyItem;
+import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
-import util.TreeNodeRepositoryVisitor;
 
 /**
  *
@@ -34,6 +38,9 @@ public class AdminBean {
     JobControlBean jobBean;
     @EJB
     RepositoryService repBean;
+    @EJB
+    ContentBean contentBean;
+    
     private int jobcount;
     private String toolConfigText;
     private TreeNode root;
@@ -129,12 +136,29 @@ public class AdminBean {
     }
     
     
+    public TreeNode convertToTreeNode(ArrayList<LinkedHashMap<String, String>> repositoryContent){
+        TreeNode repoTree = new DefaultTreeNode("root", null);
+        for(HashMap<String, String> node: repositoryContent){
+            TreeNode newNode = new DefaultTreeNode(new ProxyItem(node.get("text_name"), node.get("text_nodeid"), "Node"), repoTree);
+            for(Map.Entry<String, String> prop: node.entrySet()){
+                String type = prop.getKey();
+                String value = prop.getValue();
+                if(prop.getKey().startsWith("text") && !prop.getKey().equals("text_name")){ 
+                    TreeNode propNode = new DefaultTreeNode(new ProxyItem(type, node.get("text_nodeid")+"/"+type, value), newNode);
+                } else {
+                    TreeNode propNode = new DefaultTreeNode(new ProxyItem(type, value, "File"), newNode);
+                }
+            }
+        }
+        
+        return repoTree;
+    }
+    
+    
     @PostConstruct
     public void init() {
-        TreeNodeRepositoryVisitor treeNodeVisitor = new TreeNodeRepositoryVisitor();
-        repBean.acceptVisitor(treeNodeVisitor, null);
         this.toolConfigText = jobBean.getToolConfig().html();
-        this.root = treeNodeVisitor.getRoot();
+        this.root = convertToTreeNode(contentBean.getRepositoryContent());
         this.editMode=false;
     }
 
