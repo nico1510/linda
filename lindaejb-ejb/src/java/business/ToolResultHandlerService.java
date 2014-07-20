@@ -5,7 +5,6 @@
 package business;
 
 import Events.JobFinishedEvent;
-import java.io.InputStream;
 import javax.ejb.Local;
 
 /**

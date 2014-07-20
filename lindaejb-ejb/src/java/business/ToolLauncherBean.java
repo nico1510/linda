@@ -40,7 +40,7 @@ public class ToolLauncherBean implements ToolLauncherBeanService, Serializable {
     @Resource(mappedName = "jms/ConnectionFactory")
     QueueConnectionFactory factory;
     @EJB
-    JobControlBean jobBean;
+    JobControlService jobBean;
     @EJB
     RepositoryService repBean;
     @Inject

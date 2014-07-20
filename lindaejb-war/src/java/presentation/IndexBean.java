@@ -4,7 +4,7 @@
  */
 package presentation;
 
-import business.ContentBean;
+import business.ContentService;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -25,7 +25,7 @@ import javax.faces.bean.ViewScoped;
 public class IndexBean implements Serializable {
 
     @EJB
-    private ContentBean contentBean;
+    private ContentService contentBean;
     
     private ArrayList<LinkedHashMap<String, String>> repositoryContent;
     private String queryString;

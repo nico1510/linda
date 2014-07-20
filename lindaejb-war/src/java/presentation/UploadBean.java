@@ -4,7 +4,6 @@
  */
 package presentation;
 
-import business.ContentBean;
 import application.UserBean;
 import business.RepositoryService;
 import java.io.IOException;

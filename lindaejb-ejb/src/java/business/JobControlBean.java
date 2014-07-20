@@ -48,7 +48,7 @@ import org.jsoup.select.Elements;
  */
 @Singleton
 @Lock(LockType.READ)
-public class JobControlBean {
+public class JobControlBean implements JobControlService {
 
     @Resource(name = "mail/myMailSession")
     private Session mailSession;
@@ -61,6 +61,7 @@ public class JobControlBean {
     /**
      * @return the toolConfig
      */
+    @Override
     public Document getToolConfig() {
         return toolConfig.clone();
     }
@@ -68,6 +69,7 @@ public class JobControlBean {
     /**
      * @param toolConfig the toolConfig to set
      */
+    @Override
     public void setToolConfig(Document toolConfig) {
         this.toolConfig = toolConfig;
     }
@@ -75,6 +77,7 @@ public class JobControlBean {
     /**
      * @return the toolConfigPath
      */
+    @Override
     public String getToolConfigPath() {
         return toolConfigPath;
     }
@@ -82,6 +85,7 @@ public class JobControlBean {
     /**
      * @param toolConfigPath the toolConfigPath to set
      */
+    @Override
     public void setToolConfigPath(String toolConfigPath) {
         this.toolConfigPath = toolConfigPath;
     }
@@ -89,6 +93,7 @@ public class JobControlBean {
     /**
      * @return the tools
      */
+    @Override
     public ArrayList<Tool> getTools() {
         return tools;
     }
@@ -96,12 +101,14 @@ public class JobControlBean {
     /**
      * @param tools the tools to set
      */
+    @Override
     public void setTools(ArrayList<Tool> tools) {
         this.tools = tools;
     }
     /**
      * @return the jobs
      */
+    @Override
     public ArrayList<Job> getJobs() {
         return jobs;
     }
@@ -109,6 +116,7 @@ public class JobControlBean {
     /**
      * @param jobs the jobs to set
      */
+    @Override
     public void setJobs(ArrayList<Job> jobs) {
         this.jobs = jobs;
     }
@@ -116,6 +124,7 @@ public class JobControlBean {
     /**
      * @return the jobCount
      */
+    @Override
     public int getJobCount() {
         return this.getJobs().size();
     }
@@ -123,6 +132,7 @@ public class JobControlBean {
     /**
      * @param jobCount the jobCount to set
      */
+    @Override
     public void setJobCount(int jobCount) {
         this.jobCount = jobCount;
     }
@@ -133,6 +143,7 @@ public class JobControlBean {
         parseTools();
     }
 
+    @Override
     public void parseTools() {
         tools = new ArrayList<Tool>();
         FacesContext facesContext = FacesContext.getCurrentInstance();
@@ -174,10 +185,12 @@ public class JobControlBean {
     }
 
 
+    @Override
     public void assignWatchdog(@Observes JobStartedEvent event) {
         addWatchdog(event.getJobid(), event.getWatchdog());
     }
 
+    @Override
     public void jobFinished(@Observes JobFinishedEvent event) {
         String nodeID = event.getNodeID();
         String jobID = nodeID + File.separator + event.getToolID();
@@ -191,6 +204,7 @@ public class JobControlBean {
     }
 
     @Lock(LockType.WRITE)
+    @Override
     public void addJob(String jobid) throws JobAlreadyRunningException {
         if (containsJob(jobid)) {
             throw new JobAlreadyRunningException();
@@ -201,6 +215,7 @@ public class JobControlBean {
         }
     }
 
+    @Override
     public void removeJob(String jobid) {
         for (int i = 0; i < getJobs().size(); i++) {
             if (getJobs().get(i).getJobID().equals(jobid)) {
@@ -210,6 +225,7 @@ public class JobControlBean {
     }
 
     @Lock(LockType.WRITE)
+    @Override
     public void killJob(String jobid) throws JobAlreadyKilledException {
         ExecuteWatchdog watchdog = getWatchdog(jobid);
         if (watchdog != null) {
@@ -220,6 +236,7 @@ public class JobControlBean {
         removeJob(jobid);
     }
 
+    @Override
     public void addWatchdog(String jobid, ExecuteWatchdog watchdog) {
         for (int i = 0; i < getJobs().size(); i++) {
             if (getJobs().get(i).getJobID().equals(jobid)) {
@@ -228,6 +245,7 @@ public class JobControlBean {
         }
     }
 
+    @Override
     public ExecuteWatchdog getWatchdog(String jobid) {
         for (int i = 0; i < getJobs().size(); i++) {
             if (getJobs().get(i).getJobID().equals(jobid)) {
@@ -237,6 +255,7 @@ public class JobControlBean {
         return null;
     }
 
+    @Override
     public String getEmail(String jobid) {
         for (int i = 0; i < getJobs().size(); i++) {
             if (getJobs().get(i).getJobID().equals(jobid)) {
@@ -246,6 +265,7 @@ public class JobControlBean {
         return null;
     }
 
+    @Override
     public void addEmail(String jobid, String email) {
         for (int i = 0; i < getJobs().size(); i++) {
             Job job = getJobs().get(i);
@@ -262,6 +282,7 @@ public class JobControlBean {
     /**
      * @return the containsJob
      */
+    @Override
     public boolean containsJob(String jobid) {
         for (int i = 0; i < getJobs().size(); i++) {
             if (getJobs().get(i).getJobID().equals(jobid)) {

@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -68,7 +66,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
     private DataSource triplestore;
     
     @EJB
-    ContentBean contentBean;
+    ContentService contentBean;
             
             
     private void fireUpdate(){

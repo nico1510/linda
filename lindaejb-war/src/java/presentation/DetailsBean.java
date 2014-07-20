@@ -7,7 +7,7 @@ package presentation;
 import Exceptions.JobAlreadyKilledException;
 import Exceptions.ToolDisabledException;
 import application.UserBean;
-import business.JobControlBean;
+import business.JobControlService;
 import business.RepositoryService;
 import business.ToolLauncherBeanService;
 import java.io.File;
@@ -44,7 +44,7 @@ public class DetailsBean implements Serializable {
     @EJB
     RepositoryService repBean;
     @EJB
-    JobControlBean jobBean;
+    JobControlService jobBean;
     @EJB
     ToolLauncherBeanService launcherBean;
     @Inject

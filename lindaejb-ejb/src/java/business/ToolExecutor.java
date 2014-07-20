@@ -44,7 +44,7 @@ import util.FormatConverter;
     @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "Auto-acknowledge"),
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue")
 })
-public class ToolExecutor implements ToolExecutorService, MessageListener, Serializable {
+public class ToolExecutor implements MessageListener, Serializable {
 
     @Inject
     FormatConverter Converter;
@@ -73,7 +73,6 @@ public class ToolExecutor implements ToolExecutorService, MessageListener, Seria
 
     }
 
-    @Override
     public void launchTool(String nodeID, String launchInfo, String format) {
 
         boolean eventThrown = false;

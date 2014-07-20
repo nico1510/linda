@@ -5,8 +5,8 @@
 package presentation;
 
 import Exceptions.JobAlreadyKilledException;
-import business.ContentBean;
-import business.JobControlBean;
+import business.ContentService;
+import business.JobControlService;
 import business.RepositoryService;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -35,11 +35,11 @@ import org.primefaces.model.TreeNode;
 public class AdminBean {
 
     @EJB
-    JobControlBean jobBean;
+    JobControlService jobBean;
     @EJB
     RepositoryService repBean;
     @EJB
-    ContentBean contentBean;
+    ContentService contentBean;
     
     private int jobcount;
     private String toolConfigText;

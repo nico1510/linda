@@ -42,7 +42,7 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
     @EJB
     RepositoryService repBean;
     @EJB
-    JobControlBean jobBean;
+    JobControlService jobBean;
 
     @Override
     @Asynchronous

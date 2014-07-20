@@ -4,10 +4,8 @@
  */
 package util;
 
-import business.ContentBean;
+import business.ContentService;
 import java.util.LinkedHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
@@ -24,7 +22,7 @@ import javax.inject.Named;
 public class UrlConverter implements Converter {
 
     @EJB
-    ContentBean contentBean;
+    ContentService contentBean;
 
     @Override
     public Object getAsObject(FacesContext context, UIComponent component, String value) {

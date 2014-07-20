@@ -4,12 +4,11 @@
  */
 package presentation;
 
-import business.JobControlBean;
+import business.JobControlService;
 import business.RepositoryService;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
@@ -35,7 +34,6 @@ import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.RDFWriter;
 import org.openrdf.rio.Rio;
-import org.openrdf.rio.ntriples.NTriplesWriter;
 import org.openrdf.sail.memory.MemoryStore;
 
 /**
@@ -53,7 +51,7 @@ public class DisplayBean {
     @EJB
     RepositoryService repBean;
     @EJB
-    JobControlBean jobBean;
+    JobControlService jobBean;
 
     /**
      * @return the nodeID

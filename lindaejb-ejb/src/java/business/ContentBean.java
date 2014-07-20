@@ -21,7 +21,7 @@ import util.HashMapRepositoryVisitor;
  * @author nico
  */
 @Singleton
-public class ContentBean implements Serializable {
+public class ContentBean implements Serializable, ContentService {
 
     @EJB
     RepositoryService repBean;
@@ -39,6 +39,7 @@ public class ContentBean implements Serializable {
     /**
      * @return the repositoryContent
      */
+    @Override
     public ArrayList<LinkedHashMap<String, String>> getRepositoryContent() {
         return repositoryContent;
     }
@@ -46,6 +47,7 @@ public class ContentBean implements Serializable {
     /**
      * @param repositoryContent the repositoryContent to set
      */
+    @Override
     public void setRepositoryContent(ArrayList<LinkedHashMap<String, String>> repositoryContent) {
         this.repositoryContent = repositoryContent;
     }
@@ -58,6 +60,7 @@ public class ContentBean implements Serializable {
     }
 
    @Lock(LockType.WRITE)
+    @Override
     public void updateContent() {
         Logger.getLogger(ContentBean.class.getName()).log(Level.INFO, "updating repo content");
         HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
