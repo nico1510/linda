@@ -40,6 +40,8 @@ public class LocalRepoAccessBean implements Serializable, LocalRepoAccessService
     ContentService contentBean;
     
 
+
+    @Override
     public Session createSession(boolean writeable) {
         Session session = null;
 
@@ -58,6 +60,7 @@ public class LocalRepoAccessBean implements Serializable, LocalRepoAccessService
         }
         return session;
     }
+
     
     
     @Override

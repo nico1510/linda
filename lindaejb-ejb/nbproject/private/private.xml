@@ -6,6 +6,10 @@
             <file>file:/home/nico/NetBeansProjects/lindaejb/lindaejb-ejb/src/java/business/ContentService.java</file>
             <file>file:/home/nico/NetBeansProjects/lindaejb/lindaejb-ejb/src/java/business/JobControlBean.java</file>
             <file>file:/home/nico/NetBeansProjects/lindaejb/lindaejb-ejb/src/java/business/JobControlService.java</file>
+            <file>file:/home/nico/NetBeansProjects/lindaejb/lindaejb-ejb/src/java/business/ToolLauncherBean.java</file>
+            <file>file:/home/nico/NetBeansProjects/lindaejb/lindaejb-ejb/src/java/business/ToolExecutor.java</file>
+            <file>file:/home/nico/NetBeansProjects/lindaejb/lindaejb-ejb/src/java/business/ToolResultHandlerService.java</file>
+            <file>file:/home/nico/NetBeansProjects/lindaejb/lindaejb-ejb/src/java/business/ToolResultHandlerBean.java</file>
         </group>
     </open-files>
 </project-private>

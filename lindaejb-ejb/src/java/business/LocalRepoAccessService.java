@@ -8,6 +8,7 @@ package business;
 
 import java.io.InputStream;
 import javax.ejb.Local;
+import javax.jcr.Session;
 
 /**
  *
@@ -18,5 +19,6 @@ import javax.ejb.Local;
 public interface LocalRepoAccessService {
 
     String persistMeta(InputStream in, String nodeID, String fileName);
-    
+    Session createSession(boolean writeable);
+
 }

@@ -4,8 +4,6 @@
  */
 package business;
 
-import Events.JobFinishedEvent;
-import Events.JobStartedEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,8 +15,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.ActivationConfigProperty;
+import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
@@ -48,10 +46,9 @@ public class ToolExecutor implements MessageListener, Serializable {
 
     @Inject
     FormatConverter Converter;
-    @Inject
-    Event<JobFinishedEvent> jobFinishedSource;
-    @Inject
-    Event<JobStartedEvent> watchdogProducedSource;
+    
+    @EJB
+    JobControlService jobBean;
 
     public ToolExecutor() {
     }
@@ -138,7 +135,7 @@ public class ToolExecutor implements MessageListener, Serializable {
             executor.setWatchdog(watchdog);
             executor.setWorkingDirectory(tempDir);
             //     executor.getStreamHandler().stop();
-            watchdogProducedSource.fire(new JobStartedEvent(watchdog, nodeID + File.separator + toolID));
+            jobBean.jobStarted(watchdog, nodeID + File.separator + toolID);
 
             executor.execute(cmdLine, resultHandler);
             resultHandler.waitFor();
@@ -152,7 +149,7 @@ public class ToolExecutor implements MessageListener, Serializable {
                     String fileToSave = tempDir + File.separator + fileName;
                     filePaths.add(fileToSave);
                 }
-                jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, true, filePaths, tempDir.getAbsolutePath()));
+                jobBean.jobFinished(nodeID, toolID, true, filePaths, tempDir.getAbsolutePath());
                 eventThrown = true;
             }
 
@@ -164,7 +161,7 @@ public class ToolExecutor implements MessageListener, Serializable {
             Logger.getLogger(ToolExecutor.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             if (!eventThrown) {
-                jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, false, null, tempDir.getAbsolutePath()));
+                jobBean.jobFinished(nodeID, toolID, false, null, tempDir.getAbsolutePath());
             }
         }
     }

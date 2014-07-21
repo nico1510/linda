@@ -1,1 +1,6 @@
 /build/
+/lindaejb-ejb/build/
+/lindaejb-ejb/dist/
+/lindaejb-war/build/
+/dist/
+/lindaejb-war/dist/

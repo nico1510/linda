@@ -4,7 +4,6 @@
  */
 package business;
 
-import Events.JobFinishedEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -50,16 +49,13 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
     @Override
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void handleResult(@Observes JobFinishedEvent event) {
+    public void handleResult(String nodeID, String toolID, boolean success, ArrayList<String> filePaths, String absolutePath) {
         try {
-            if (event.getSuccess()) {
-                String toolID = event.getToolID();
-                ArrayList<String> filesToSave = event.getFilesToSave();
-                String nodeID = event.getNodeID();
+            if (success) {
 
-                for (int i = 0; i < filesToSave.size(); i++) {
-                    String filePath = filesToSave.get(i);
-                    String fileName = filesToSave.get(i).split("/")[filesToSave.get(i).split("/").length - 1];
+                for (int i = 0; i < filePaths.size(); i++) {
+                    String filePath = filePaths.get(i);
+                    String fileName = filePaths.get(i).split("/")[filePaths.get(i).split("/").length - 1];
                     InputStream fin;
                     try {
                         fin = new FileInputStream(new File(filePath));
@@ -71,8 +67,8 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
                 useResult(toolID, nodeID);
             }
         } finally {
-            if (!event.getFolderToDelete().isEmpty()) {
-                File tempDir = new File(event.getFolderToDelete());
+            if (!absolutePath.isEmpty()) {
+                File tempDir = new File(absolutePath);
                 deleteDir(tempDir);
             }
         }
@@ -85,7 +81,7 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
             LinkedHashMap<String, String> folder = new LinkedHashMap<String, String>();
             folder.put("text_nodeid", nodeID);
 
-            session = repBean.createSession(false);
+            session = localRepoBean.createSession(false);
             Property metaProp = session.getProperty(nodeID + File.separator + voidfile);
 
             InputStream toolFileIn = metaProp.getBinary().getStream();

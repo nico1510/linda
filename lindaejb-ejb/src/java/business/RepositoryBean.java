@@ -65,6 +65,8 @@ public class RepositoryBean implements RepositoryService, Serializable {
     
     @EJB
     ContentService contentBean;
+    @EJB
+    LocalRepoAccessService localRepoBean;
             
             
     private void fireUpdate(){
@@ -157,7 +159,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
 
     @Override
     public String getPhysicalBinaryPath(String propPath) {
-        Session session = createSession(false);
+        Session session = localRepoBean.createSession(false);
         try {
             Property p = session.getProperty(propPath);
             Binary b = p.getBinary();
@@ -206,23 +208,22 @@ public class RepositoryBean implements RepositoryService, Serializable {
     }
 
     @Override
-    public void acceptVisitor(ItemVisitor repVisitor, Session session) {
+    public ArrayList<LinkedHashMap<String, String>>  getRepoContent() {
+        HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
+        Session session = localRepoBean.createSession(false);
         try {
-            if (session == null || !session.isLive()) {
-                session = createSession(false);
-            }
             session.getRootNode().accept(repVisitor);
         } catch (RepositoryException ex) {
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             session.logout();
         }
-
+        return repVisitor.getList();
     }
 
     @Override
     public void changeFolder(LinkedHashMap<String, String> folder) {
-        Session session = createSession(true);
+        Session session = localRepoBean.createSession(true);
         String nodeID = folder.get("text_nodeid");
         try {
             Node nodeToChange = session.getNode(nodeID);
@@ -251,7 +252,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
 
     @Override
     public void deleteItems(String[] itemPaths) {
-        Session session = createSession(true);
+        Session session = localRepoBean.createSession(true);
         try {
             for (int i = 0; i < itemPaths.length; i++) {
                 Item itemToDelete = session.getItem(itemPaths[i]);
@@ -273,26 +274,6 @@ public class RepositoryBean implements RepositoryService, Serializable {
             session.logout();
             fireUpdate();
         }
-    }
-
-    @Override
-    public Session createSession(boolean writeable) {
-        Session session = null;
-
-        try {
-            if (writeable) {
-                session = repository.login(new SimpleCredentials(UUID.randomUUID().toString(), "".toCharArray()), null);
-            } else {
-                session = repository.login();
-            }
-        } catch (LoginException ex) {
-            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchWorkspaceException ex) {
-            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (RepositoryException ex) {
-            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return session;
     }
 
     private void walkAndRemove(List<String> activeFiles, String path) {
@@ -320,8 +301,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
         Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Running Repo Garbage Collection");
         // get all active files
         HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
-        acceptVisitor(repVisitor, null);
-        ArrayList<LinkedHashMap<String, String>> repositoryContent = repVisitor.getList();
+        ArrayList<LinkedHashMap<String, String>> repositoryContent = getRepoContent();
 
         ArrayList<String> fileNames = new ArrayList<String>();
         for (LinkedHashMap<String, String> node : repositoryContent) {

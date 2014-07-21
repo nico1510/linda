@@ -8,18 +8,16 @@ package business;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import javax.ejb.Local;
+import javax.ejb.Remote;
 
 /**
  *
  * @author nico
  */
 
-@Local
+@Remote
 public interface ContentService {
 
     ArrayList<LinkedHashMap<String, String>> getRepositoryContent();
-    void setRepositoryContent(ArrayList<LinkedHashMap<String, String>> repositoryContent);
-    void updateContent();
-    
+    void updateContent();    
 }

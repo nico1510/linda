@@ -4,8 +4,6 @@
  */
 package business;
 
-import Events.JobFinishedEvent;
-import Events.JobStartedEvent;
 import Exceptions.JobAlreadyKilledException;
 import Exceptions.JobAlreadyRunningException;
 import java.io.File;
@@ -20,6 +18,7 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
+import javax.ejb.EJB;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
@@ -57,6 +56,9 @@ public class JobControlBean implements JobControlService {
     private ArrayList<Job> jobs;
     private ArrayList<Tool> tools;
     private int jobCount;
+    
+    @EJB
+    ToolResultHandlerService resultHandler;
 
     /**
      * @return the toolConfig
@@ -184,25 +186,6 @@ public class JobControlBean implements JobControlService {
 
     }
 
-
-    @Override
-    public void assignWatchdog(@Observes JobStartedEvent event) {
-        addWatchdog(event.getJobid(), event.getWatchdog());
-    }
-
-    @Override
-    public void jobFinished(@Observes JobFinishedEvent event) {
-        String nodeID = event.getNodeID();
-        String jobID = nodeID + File.separator + event.getToolID();
-        if (event.getSuccess()) {
-            String email = getEmail(jobID);
-            if (email != null) {
-                sendEmail(email, nodeID);
-            }
-        }
-        removeJob(jobID);
-    }
-
     @Lock(LockType.WRITE)
     @Override
     public void addJob(String jobid) throws JobAlreadyRunningException {
@@ -321,5 +304,23 @@ public class JobControlBean implements JobControlService {
         } catch (MessagingException ex) {
             Logger.getLogger(JobControlBean.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    @Override
+    public void jobStarted(ExecuteWatchdog watchdog, String jobID) {
+        addWatchdog(jobID, watchdog);
+    }
+
+    @Override
+    public void jobFinished(String nodeID, String toolID, boolean success, ArrayList<String> filePaths, String absolutePath) {
+        String jobID = nodeID + File.separator + toolID;
+        if (success) {
+            String email = getEmail(jobID);
+            if (email != null) {
+                sendEmail(email, nodeID);
+            }
+        }
+        removeJob(jobID);
+        resultHandler.handleResult(nodeID, toolID, success, filePaths, absolutePath);
     }
 }

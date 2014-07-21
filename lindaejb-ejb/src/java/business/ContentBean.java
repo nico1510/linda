@@ -21,7 +21,6 @@ import javax.ejb.Singleton;
 import javax.jcr.Repository;
 import org.apache.jackrabbit.rmi.remote.RemoteRepository;
 import org.apache.jackrabbit.rmi.server.ServerAdapterFactory;
-import util.HashMapRepositoryVisitor;
 
 /**
  *
@@ -55,7 +54,6 @@ public class ContentBean implements Serializable, ContentService {
     /**
      * @param repositoryContent the repositoryContent to set
      */
-    @Override
     public void setRepositoryContent(ArrayList<LinkedHashMap<String, String>> repositoryContent) {
         this.repositoryContent = repositoryContent;
     }
@@ -63,18 +61,14 @@ public class ContentBean implements Serializable, ContentService {
     @PostConstruct
     public void init() {
         exposeRepoThroughRMI();
-        HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
-        repBean.acceptVisitor(repVisitor, null);
-        this.repositoryContent = repVisitor.getList();
+        this.repositoryContent = repBean.getRepoContent();
     }
 
     @Lock(LockType.WRITE)
     @Override
     public void updateContent() {
         Logger.getLogger(ContentBean.class.getName()).log(Level.INFO, "updating repo content");
-        HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
-        repBean.acceptVisitor(repVisitor, null);
-        this.repositoryContent = repVisitor.getList();
+        this.repositoryContent = repBean.getRepoContent();
     }
 
     public void exposeRepoThroughRMI() {
@@ -90,5 +84,4 @@ public class ContentBean implements Serializable, ContentService {
             Logger.getLogger(ContentBean.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 }

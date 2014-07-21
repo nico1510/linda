@@ -4,17 +4,17 @@
  */
 package business;
 
-import Events.JobFinishedEvent;
-import javax.ejb.Local;
+import java.util.ArrayList;
+import javax.ejb.Remote;
 
 /**
  *
  * @author nico
  */
 
-@Local
+@Remote
 public interface ToolResultHandlerService {
     
-    public void handleResult(JobFinishedEvent event);
+    public void handleResult(String nodeID, String toolID, boolean success, ArrayList<String> filePaths, String absolutePath);
     
 }

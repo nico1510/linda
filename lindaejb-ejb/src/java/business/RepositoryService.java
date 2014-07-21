@@ -4,26 +4,23 @@
  */
 package business;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import javax.ejb.Local;
-import javax.jcr.ItemVisitor;
-import javax.jcr.Session;
+import javax.ejb.Remote;
 
 /**
  *
  * @author nico
  */
-@Local
+@Remote
 public interface RepositoryService {
     
     public void changeFolder(LinkedHashMap<String,String> folder);
     
     public void deleteItems(String[] itemID);
     
-    public void acceptVisitor(ItemVisitor visitor,Session session);
+    public ArrayList<LinkedHashMap<String, String>> getRepoContent();
     
-    public Session createSession(boolean writeable);
-
     public String getPhysicalBinaryPath(String propPath);
         
     public void cleanup();

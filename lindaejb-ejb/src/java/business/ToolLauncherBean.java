@@ -4,7 +4,6 @@
  */
 package business;
 
-import Events.JobFinishedEvent;
 import Exceptions.JobAlreadyRunningException;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -43,8 +42,6 @@ public class ToolLauncherBean implements ToolLauncherBeanService, Serializable {
     JobControlService jobBean;
     @EJB
     RepositoryService repBean;
-    @Inject
-    Event<JobFinishedEvent> jobFinishedSource;
     
     @Asynchronous
     @Override
@@ -89,14 +86,14 @@ public class ToolLauncherBean implements ToolLauncherBeanService, Serializable {
                 connection.close();
 
             } catch (JMSException ex) {
-                jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, false, null, null));
+                jobBean.jobFinished(nodeID, toolID, false, null, null);
                 Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (JobAlreadyRunningException ex) {
-            jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, false, null, null));
+            jobBean.jobFinished(nodeID, toolID, false, null, null);
             Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NullPointerException ex) {
-            jobFinishedSource.fire(new JobFinishedEvent(nodeID, toolID, false, null, null));
+            jobBean.jobFinished(nodeID, toolID, false, null, null);
             Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, "NullPointException in ToolLauncherBean, so there's probably something wrong with tools.xml " + ex);
         }
     }

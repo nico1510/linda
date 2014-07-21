@@ -6,12 +6,10 @@
 
 package business;
 
-import Events.JobFinishedEvent;
-import Events.JobStartedEvent;
 import Exceptions.JobAlreadyKilledException;
 import Exceptions.JobAlreadyRunningException;
 import java.util.ArrayList;
-import javax.ejb.Local;
+import javax.ejb.Remote;
 import model.Job;
 import model.Tool;
 import org.apache.commons.exec.ExecuteWatchdog;
@@ -22,7 +20,7 @@ import org.jsoup.nodes.Document;
  * @author nico
  */
 
-@Local
+@Remote
 public interface JobControlService {
 
     void addEmail(String jobid, String email);
@@ -30,41 +28,19 @@ public interface JobControlService {
     void addJob(String jobid) throws JobAlreadyRunningException;
 
     void addWatchdog(String jobid, ExecuteWatchdog watchdog);
-    
-    void assignWatchdog(JobStartedEvent event);
 
-    void jobFinished(JobFinishedEvent event);
-
-    /**
-     * @return the containsJob
-     */
     boolean containsJob(String jobid);
 
     String getEmail(String jobid);
 
-    /**
-     * @return the jobCount
-     */
     int getJobCount();
 
-    /**
-     * @return the jobs
-     */
     ArrayList<Job> getJobs();
 
-    /**
-     * @return the toolConfig
-     */
     Document getToolConfig();
 
-    /**
-     * @return the toolConfigPath
-     */
     String getToolConfigPath();
 
-    /**
-     * @return the tools
-     */
     ArrayList<Tool> getTools();
 
     ExecuteWatchdog getWatchdog(String jobid);
@@ -75,29 +51,18 @@ public interface JobControlService {
 
     void removeJob(String jobid);
 
-    /**
-     * @param jobCount the jobCount to set
-     */
     void setJobCount(int jobCount);
 
-    /**
-     * @param jobs the jobs to set
-     */
     void setJobs(ArrayList<Job> jobs);
 
-    /**
-     * @param toolConfig the toolConfig to set
-     */
     void setToolConfig(Document toolConfig);
 
-    /**
-     * @param toolConfigPath the toolConfigPath to set
-     */
     void setToolConfigPath(String toolConfigPath);
 
-    /**
-     * @param tools the tools to set
-     */
     void setTools(ArrayList<Tool> tools);
+
+    void jobStarted(ExecuteWatchdog watchdog, String jobID);
+
+    void jobFinished(String nodeID, String toolID, boolean success, ArrayList<String> filePaths, String absolutePath);
     
 }
