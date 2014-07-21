@@ -5,7 +5,6 @@
 package presentation;
 
 import application.UserBean;
-import business.RepositoryService;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
@@ -14,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
@@ -23,6 +21,7 @@ import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.UploadedFile;
+import util.ClientRepoAccess;
 
 /**
  *
@@ -32,10 +31,10 @@ import org.primefaces.model.UploadedFile;
 @ViewScoped
 public class UploadBean implements Serializable {
 
-    @EJB
-    RepositoryService repBean;
     @Inject
     UserBean userBean;
+    @Inject
+    ClientRepoAccess repoClient;
     private String viewid;
     private int uploadOption;
     @ManagedProperty(value = "#{folderBean}")
@@ -102,12 +101,12 @@ public class UploadBean implements Serializable {
         LinkedHashMap<String, String> folder = folderBean.getFolder();
         folder.put("text_filename", event.getFile().getFileName());
         try {
-            datasetID = repBean.persistDataset(uploadedFile.getInputstream(), folder, uploadedFile.getContentType());
+            datasetID = repoClient.persistDataset(uploadedFile.getInputstream(), folder, uploadedFile.getContentType());
             userBean.getUploadedDatasets().add(datasetID);
         } catch (IOException ex) {
             Logger.getLogger(UploadBean.class.getName()).log(Level.SEVERE, null, ex);
         }
-        datasetID = datasetID.replaceAll("/", "");
+        datasetID = datasetID.replace("/", "");
         FacesContext facesContext = FacesContext.getCurrentInstance();
         ExternalContext extContext = facesContext.getExternalContext();
         String url = extContext.encodeActionURL(facesContext.getApplication().getViewHandler().getActionURL(facesContext, "/details.xhtml?id=" + datasetID));

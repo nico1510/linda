@@ -36,12 +36,10 @@ import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
-import javax.jcr.ValueFactory;
 import javax.jcr.lock.LockException;
 import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.version.VersionException;
 import javax.sql.DataSource;
-import model.ProxyFile;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
@@ -205,104 +203,6 @@ public class RepositoryBean implements RepositoryService, Serializable {
          * Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, id);
          * }
          */
-    }
-
-    @Override
-    public String persistDataset(InputStream in, LinkedHashMap<String, String> folder, String mimeType) {
-        if (mimeType.equals("application/x-gzip") | mimeType.equals("application/zip")) {
-            in = decompressStream(mimeType, in, folder);
-        }
-
-        String fileName = folder.get("text_filename");
-        String rdfFormat = FilenameUtils.getExtension(fileName);
-        folder.put("text_rdfformat", rdfFormat);
-
-        Session session = createSession(true);
-        try {
-            ValueFactory vf = session.getValueFactory();
-            Binary bfile = vf.createBinary(in);
-
-            Node root = session.getRootNode();
-            Node filenode = root.addNode(UUID.randomUUID().toString().replaceAll("-", ""));
-            Property p = filenode.setProperty("dataset", bfile);
-
-            Iterator it = folder.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pairs = (Map.Entry) it.next();
-                String key = (String) pairs.getKey();
-                String value = (String) pairs.getValue();
-                filenode.setProperty(key, value);
-                it.remove();
-            }
-            String nodeID = filenode.getPath();
-            session.save();
-            return nodeID;
-
-        } catch (RepositoryException ex) {
-            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            session.logout();
-            fireUpdate();
-        }
-
-        return null;
-    }
-
-    @Override
-    public String persistMeta(InputStream in, String nodeID, String fileName) {
-        Session session = createSession(true);
-        try {
-            ValueFactory vf = session.getValueFactory();
-            Binary bfile = vf.createBinary(in);
-
-            Node datasetNode = session.getNode(nodeID);
-            Property metaProp = datasetNode.setProperty(fileName, bfile);
-
-            session.save();
-            String metaPath = metaProp.getPath();
-
-            return metaPath;
-
-        } catch (RepositoryException ex) {
-            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            session.logout();
-            fireUpdate();
-        }
-        return null;
-    }
-
-    @Override
-    public ProxyFile downloadFile(String propPath) {
-        ProxyFile proxyFile = new ProxyFile();
-        Session session = this.createSession(false);
-
-        try {
-            Property downloadProp = session.getProperty(propPath);
-            Binary b = downloadProp.getBinary();
-
-            proxyFile.setLength(b.getSize());
-            proxyFile.setContent(b.getStream());
-            proxyFile.setContentType("text/plain");
-            proxyFile.setName(downloadProp.getName());
-
-            if (downloadProp.getName().equals("dataset")) {
-                Node parentNode = downloadProp.getParent();
-                if (parentNode.hasProperty("text_filename") && !parentNode.getProperty("text_filename").getString().isEmpty()) {
-                    proxyFile.setName(parentNode.getProperty("text_filename").getString());
-                }
-            }
-
-            b.dispose();
-
-            return proxyFile;
-        } catch (RepositoryException ex) {
-            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            session.logout();
-        }
-
-        return null;
     }
 
     @Override

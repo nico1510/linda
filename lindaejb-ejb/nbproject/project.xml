@@ -10,6 +10,8 @@
             <included-library dirs="200">file.reference.jsoup-1.7.1.jar</included-library>
             <included-library dirs="200">file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar</included-library>
             <included-library dirs="200">file.reference.commons-io-2.4.jar</included-library>
+            <included-library dirs="200">file.reference.jackrabbit-jcr-commons-2.4.5.jar</included-library>
+            <included-library dirs="200">file.reference.jackrabbit-jcr-rmi-2.4.5.jar</included-library>
             <source-roots>
                 <root id="src.dir"/>
             </source-roots>

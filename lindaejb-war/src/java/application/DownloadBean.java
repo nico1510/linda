@@ -4,17 +4,27 @@
  */
 package application;
 
+import business.RepositoryBean;
 import business.RepositoryService;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.RequestScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.jcr.Binary;
+import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.Repository;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.servlet.http.HttpServletResponse;
 import model.ProxyFile;
+import org.apache.jackrabbit.commons.JcrUtils;
 
 /**
  *
@@ -61,7 +71,7 @@ public class DownloadBean {
     public void downloadFile() throws IOException {
         
         String propertyPath = "/"+nodeID+"/"+fileID;
-        ProxyFile fileToDownload = repBean.downloadFile(propertyPath);
+        ProxyFile fileToDownload = downloadFile(propertyPath);
 
         FacesContext facesContext = FacesContext.getCurrentInstance();
         ExternalContext externalContext = facesContext.getExternalContext();
@@ -92,5 +102,38 @@ public class DownloadBean {
         }
     }
 
+        public ProxyFile downloadFile(String propPath) {
+        ProxyFile proxyFile = new ProxyFile();
+        Session session = null;
+            
+        try {
+            Repository repository = JcrUtils.getRepository("rmi://webschemex.west.uni-koblenz.de:1100/jackrabbit");
+            session = repository.login();
+            Property downloadProp = session.getProperty(propPath);
+            Binary b = downloadProp.getBinary();
+
+            proxyFile.setLength(b.getSize());
+            proxyFile.setContent(b.getStream());
+            proxyFile.setContentType("text/plain");
+            proxyFile.setName(downloadProp.getName());
+
+            if (downloadProp.getName().equals("dataset")) {
+                Node parentNode = downloadProp.getParent();
+                if (parentNode.hasProperty("text_filename") && !parentNode.getProperty("text_filename").getString().isEmpty()) {
+                    proxyFile.setName(parentNode.getProperty("text_filename").getString());
+                }
+            }
+
+            b.dispose();
+
+            return proxyFile;
+        } catch (RepositoryException ex) {
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            session.logout();
+        }
+
+        return null;
+    }
 
 }

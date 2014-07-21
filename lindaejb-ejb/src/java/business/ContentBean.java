@@ -5,15 +5,22 @@
 package business;
 
 import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
+import javax.jcr.Repository;
+import org.apache.jackrabbit.rmi.remote.RemoteRepository;
+import org.apache.jackrabbit.rmi.server.ServerAdapterFactory;
 import util.HashMapRepositoryVisitor;
 
 /**
@@ -25,16 +32,17 @@ public class ContentBean implements Serializable, ContentService {
 
     @EJB
     RepositoryService repBean;
+    
+    @Resource(name = "jcr/rep1")
+    private Repository repository;
 
     private ArrayList<LinkedHashMap<String, String>> repositoryContent;
-
 
     /**
      * Creates a new instance of ViewBean
      */
     public ContentBean() {
     }
-    
 
     /**
      * @return the repositoryContent
@@ -54,19 +62,33 @@ public class ContentBean implements Serializable, ContentService {
 
     @PostConstruct
     public void init() {
+        exposeRepoThroughRMI();
         HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
         repBean.acceptVisitor(repVisitor, null);
         this.repositoryContent = repVisitor.getList();
     }
 
-   @Lock(LockType.WRITE)
+    @Lock(LockType.WRITE)
     @Override
     public void updateContent() {
         Logger.getLogger(ContentBean.class.getName()).log(Level.INFO, "updating repo content");
         HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
-        repBean.acceptVisitor(repVisitor,null);
+        repBean.acceptVisitor(repVisitor, null);
         this.repositoryContent = repVisitor.getList();
     }
 
-   
+    public void exposeRepoThroughRMI() {
+        try {
+            // Start the RMI registry
+            Registry reg = LocateRegistry.createRegistry(1100);
+            
+            // Bind the repository reference to the registry
+            ServerAdapterFactory factory = new ServerAdapterFactory();
+            RemoteRepository remote = factory.getRemoteRepository(repository);
+            reg.rebind("jackrabbit", remote);
+        } catch (RemoteException ex) {
+            Logger.getLogger(ContentBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
 }

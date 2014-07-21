@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
+import util.ClientRepoAccess;
 
 /**
  *
@@ -25,12 +26,12 @@ import javax.servlet.http.Part;
 @WebServlet(name = "RequestHandler", urlPatterns = {"/request"})
 @MultipartConfig
 public class RequestHandler extends HttpServlet {
-
-    @EJB
-    RepositoryService repBean;
     
     @Inject
     UserBean userBean;
+    
+    @Inject
+    ClientRepoAccess repoClient;
 
 
     /**
@@ -90,7 +91,7 @@ public class RequestHandler extends HttpServlet {
         String fileName = getFilename(filePart);
         folder.put("text_filename", fileName);
         InputStream filecontent = filePart.getInputStream();
-        String datasetID = repBean.persistDataset(filecontent, folder, filePart.getContentType());
+        String datasetID = repoClient.persistDataset(filecontent, folder, filePart.getContentType());
         userBean.getUploadedDatasets().add(datasetID);
         response.getWriter().println("SUCCESS");
         response.getWriter().close();

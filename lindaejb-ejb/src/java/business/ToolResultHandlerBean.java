@@ -43,6 +43,9 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
     RepositoryService repBean;
     @EJB
     JobControlService jobBean;
+    @EJB
+    LocalRepoAccessService localRepoBean;
+
 
     @Override
     @Asynchronous
@@ -51,7 +54,6 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
         try {
             if (event.getSuccess()) {
                 String toolID = event.getToolID();
-                ArrayList<String> outputFiles = null;
                 ArrayList<String> filesToSave = event.getFilesToSave();
                 String nodeID = event.getNodeID();
 
@@ -61,12 +63,12 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
                     InputStream fin;
                     try {
                         fin = new FileInputStream(new File(filePath));
-                        repBean.persistMeta(fin, nodeID, fileName);
+                        localRepoBean.persistMeta(fin, nodeID, fileName);
                     } catch (FileNotFoundException ex) {
                         Logger.getLogger(ToolResultHandlerBean.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                useResult(toolID, outputFiles, nodeID);
+                useResult(toolID, nodeID);
             }
         } finally {
             if (!event.getFolderToDelete().isEmpty()) {
@@ -125,7 +127,9 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
     private void handleMutualResult(String nodeID, ArrayList<String> outputFiles) {
     }
 
-    private void useResult(String toolID, ArrayList<String> outputFiles, String nodeID) {
+    private void useResult(String toolID, String nodeID) {
+        ArrayList<String> outputFiles = null;
+        
         for (int i = 0; i < jobBean.getTools().size(); i++) {
             Tool tool = jobBean.getTools().get(i);
             if (tool.getToolID().equals(toolID)) {
