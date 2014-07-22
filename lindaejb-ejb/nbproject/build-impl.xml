@@ -793,41 +793,21 @@ exists or setup the property manually. For example like this:
     </target>
     <target depends="compile,-library-inclusion-in-archive-weblogic,-library-inclusion-in-archive-by-user" name="library-inclusion-in-archive"/>
     <target if="is.jars.in.ejbjar" name="-library-inclusion-in-archive-by-user">
-        <copyfiles files="${file.reference.Exec.jar}" todir="${build.classes.dir}"/>
-        <copyfiles files="${file.reference.commons-compress-1.4.1.jar}" todir="${build.classes.dir}"/>
-        <copyfiles files="${file.reference.jsoup-1.7.1.jar}" todir="${build.classes.dir}"/>
-        <copyfiles files="${file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar}" todir="${build.classes.dir}"/>
-        <copyfiles files="${file.reference.commons-io-2.4.jar}" todir="${build.classes.dir}"/>
-        <copyfiles files="${file.reference.jackrabbit-jcr-commons-2.4.5.jar}" todir="${build.classes.dir}"/>
-        <copyfiles files="${file.reference.jackrabbit-jcr-rmi-2.4.5.jar}" todir="${build.classes.dir}"/>
+        <copyfiles files="${file.reference.slf4j-api-1.7.2.jar}" todir="${build.classes.dir}"/>
+        <copyfiles files="${file.reference.slf4j-simple-1.7.2.jar}" todir="${build.classes.dir}"/>
     </target>
     <target if="is.server.weblogic" name="-library-inclusion-in-archive-weblogic">
-        <basename file="${file.reference.Exec.jar}" property="manifest.file.reference.Exec.jar"/>
-        <basename file="${file.reference.commons-compress-1.4.1.jar}" property="manifest.file.reference.commons-compress-1.4.1.jar"/>
-        <basename file="${file.reference.jsoup-1.7.1.jar}" property="manifest.file.reference.jsoup-1.7.1.jar"/>
-        <basename file="${file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar}" property="manifest.file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar"/>
-        <basename file="${file.reference.commons-io-2.4.jar}" property="manifest.file.reference.commons-io-2.4.jar"/>
-        <basename file="${file.reference.jackrabbit-jcr-commons-2.4.5.jar}" property="manifest.file.reference.jackrabbit-jcr-commons-2.4.5.jar"/>
-        <basename file="${file.reference.jackrabbit-jcr-rmi-2.4.5.jar}" property="manifest.file.reference.jackrabbit-jcr-rmi-2.4.5.jar"/>
+        <basename file="${file.reference.slf4j-api-1.7.2.jar}" property="manifest.file.reference.slf4j-api-1.7.2.jar"/>
+        <basename file="${file.reference.slf4j-simple-1.7.2.jar}" property="manifest.file.reference.slf4j-simple-1.7.2.jar"/>
         <manifest file="${build.ear.classes.dir}/META-INF/MANIFEST.MF" mode="update">
-            <attribute name="Extension-List" value="jar-1 jar-2 jar-3 jar-4 jar-5 jar-6 jar-7 "/>
-            <attribute name="jar-1-Extension-Name" value="${manifest.file.reference.Exec.jar}"/>
-            <attribute name="jar-2-Extension-Name" value="${manifest.file.reference.commons-compress-1.4.1.jar}"/>
-            <attribute name="jar-3-Extension-Name" value="${manifest.file.reference.jsoup-1.7.1.jar}"/>
-            <attribute name="jar-4-Extension-Name" value="${manifest.file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar}"/>
-            <attribute name="jar-5-Extension-Name" value="${manifest.file.reference.commons-io-2.4.jar}"/>
-            <attribute name="jar-6-Extension-Name" value="${manifest.file.reference.jackrabbit-jcr-commons-2.4.5.jar}"/>
-            <attribute name="jar-7-Extension-Name" value="${manifest.file.reference.jackrabbit-jcr-rmi-2.4.5.jar}"/>
+            <attribute name="Extension-List" value="jar-1 jar-2 "/>
+            <attribute name="jar-1-Extension-Name" value="${manifest.file.reference.slf4j-api-1.7.2.jar}"/>
+            <attribute name="jar-2-Extension-Name" value="${manifest.file.reference.slf4j-simple-1.7.2.jar}"/>
         </manifest>
     </target>
     <target depends="compile" name="library-inclusion-in-manifest">
-        <copyfiles files="${file.reference.Exec.jar}" todir="${dist.ear.dir}/lib"/>
-        <copyfiles files="${file.reference.commons-compress-1.4.1.jar}" todir="${dist.ear.dir}/lib"/>
-        <copyfiles files="${file.reference.jsoup-1.7.1.jar}" todir="${dist.ear.dir}/lib"/>
-        <copyfiles files="${file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar}" todir="${dist.ear.dir}/lib"/>
-        <copyfiles files="${file.reference.commons-io-2.4.jar}" todir="${dist.ear.dir}/lib"/>
-        <copyfiles files="${file.reference.jackrabbit-jcr-commons-2.4.5.jar}" todir="${dist.ear.dir}/lib"/>
-        <copyfiles files="${file.reference.jackrabbit-jcr-rmi-2.4.5.jar}" todir="${dist.ear.dir}/lib"/>
+        <copyfiles files="${file.reference.slf4j-api-1.7.2.jar}" todir="${dist.ear.dir}/lib"/>
+        <copyfiles files="${file.reference.slf4j-simple-1.7.2.jar}" todir="${dist.ear.dir}/lib"/>
         <manifest file="${build.ear.classes.dir}/META-INF/MANIFEST.MF" mode="update"/>
     </target>
     <target name="-copy-meta-inf">

@@ -7,4 +7,20 @@
       <description>Keep a copy of the generated servlet class' java code.</description>
     </property>
   </jsp-config>
+     <ejb-ref>
+        <ejb-ref-name>contentBean</ejb-ref-name>
+        <jndi-name>corbaname:iiop:webschemex.west.uni-koblenz.de:3700#java:global/lindaejb-ejb/ContentBean</jndi-name>
+     </ejb-ref>
+     <ejb-ref>
+        <ejb-ref-name>repBean</ejb-ref-name>
+        <jndi-name>corbaname:iiop:webschemex.west.uni-koblenz.de:3700#java:global/lindaejb-ejb/RepositoryBean</jndi-name>
+     </ejb-ref>
+     <ejb-ref>
+        <ejb-ref-name>jobBean</ejb-ref-name>
+        <jndi-name>corbaname:iiop:webschemex.west.uni-koblenz.de:3700#java:global/lindaejb-ejb/JobControlBean</jndi-name>
+     </ejb-ref>
+     <ejb-ref>
+        <ejb-ref-name>launcherBean</ejb-ref-name>
+        <jndi-name>corbaname:iiop:webschemex.west.uni-koblenz.de:3700#java:global/lindaejb-ejb/ToolLauncherBean</jndi-name>
+     </ejb-ref>
 </glassfish-web-app>

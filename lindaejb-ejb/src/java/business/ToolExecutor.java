@@ -48,7 +48,7 @@ public class ToolExecutor implements MessageListener, Serializable {
     FormatConverter Converter;
     
     @EJB
-    JobControlService jobBean;
+    ProcessManagerService processManager;
 
     public ToolExecutor() {
     }
@@ -135,7 +135,7 @@ public class ToolExecutor implements MessageListener, Serializable {
             executor.setWatchdog(watchdog);
             executor.setWorkingDirectory(tempDir);
             //     executor.getStreamHandler().stop();
-            jobBean.jobStarted(watchdog, nodeID + File.separator + toolID);
+            processManager.jobStarted(watchdog, nodeID + File.separator + toolID);
 
             executor.execute(cmdLine, resultHandler);
             resultHandler.waitFor();
@@ -149,7 +149,7 @@ public class ToolExecutor implements MessageListener, Serializable {
                     String fileToSave = tempDir + File.separator + fileName;
                     filePaths.add(fileToSave);
                 }
-                jobBean.jobFinished(nodeID, toolID, true, filePaths, tempDir.getAbsolutePath());
+                processManager.jobFinished(nodeID, toolID, true, filePaths, tempDir.getAbsolutePath());
                 eventThrown = true;
             }
 
@@ -161,7 +161,7 @@ public class ToolExecutor implements MessageListener, Serializable {
             Logger.getLogger(ToolExecutor.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             if (!eventThrown) {
-                jobBean.jobFinished(nodeID, toolID, false, null, tempDir.getAbsolutePath());
+                processManager.jobFinished(nodeID, toolID, false, null, tempDir.getAbsolutePath());
             }
         }
     }

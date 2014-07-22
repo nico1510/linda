@@ -21,7 +21,7 @@ import javax.inject.Named;
 @FacesConverter(forClass = LinkedHashMap.class)
 public class UrlConverter implements Converter {
 
-    @EJB
+    @EJB(name="contentBean")
     ContentService contentBean;
 
     @Override

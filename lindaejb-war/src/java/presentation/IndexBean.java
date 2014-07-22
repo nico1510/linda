@@ -24,7 +24,7 @@ import javax.faces.bean.ViewScoped;
 @ViewScoped
 public class IndexBean implements Serializable {
 
-    @EJB
+    @EJB(name="contentBean")
     private ContentService contentBean;
     
     private ArrayList<LinkedHashMap<String, String>> repositoryContent;

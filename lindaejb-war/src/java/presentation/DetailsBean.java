@@ -41,11 +41,11 @@ public class DetailsBean implements Serializable {
     private boolean notifierVisible = false;
     private String email;
     private String lastJob;
-    @EJB
+    @EJB(name="repBean")
     RepositoryService repBean;
-    @EJB
+    @EJB(name="jobBean")
     JobControlService jobBean;
-    @EJB
+    @EJB(name="launcherBean")
     ToolLauncherBeanService launcherBean;
     @Inject
     private UserBean userBean;

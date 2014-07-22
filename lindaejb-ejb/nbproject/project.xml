@@ -5,13 +5,8 @@
         <data xmlns="http://www.netbeans.org/ns/j2ee-ejbjarproject/3">
             <name>lindaejb-ejb</name>
             <minimum-ant-version>1.6.5</minimum-ant-version>
-            <included-library dirs="200">file.reference.Exec.jar</included-library>
-            <included-library dirs="200">file.reference.commons-compress-1.4.1.jar</included-library>
-            <included-library dirs="200">file.reference.jsoup-1.7.1.jar</included-library>
-            <included-library dirs="200">file.reference.openrdf-sesame-2.7.0-beta1-onejar.jar</included-library>
-            <included-library dirs="200">file.reference.commons-io-2.4.jar</included-library>
-            <included-library dirs="200">file.reference.jackrabbit-jcr-commons-2.4.5.jar</included-library>
-            <included-library dirs="200">file.reference.jackrabbit-jcr-rmi-2.4.5.jar</included-library>
+            <included-library dirs="200">file.reference.slf4j-api-1.7.2.jar</included-library>
+            <included-library dirs="200">file.reference.slf4j-simple-1.7.2.jar</included-library>
             <source-roots>
                 <root id="src.dir"/>
             </source-roots>

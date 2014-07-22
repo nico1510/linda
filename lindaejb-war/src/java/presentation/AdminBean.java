@@ -8,9 +8,6 @@ import Exceptions.JobAlreadyKilledException;
 import business.ContentService;
 import business.JobControlService;
 import business.RepositoryService;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -21,7 +18,7 @@ import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
-import model.Job;
+import model.JobProxy;
 import model.ProxyItem;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
@@ -34,18 +31,18 @@ import org.primefaces.model.TreeNode;
 @ViewScoped
 public class AdminBean {
 
-    @EJB
+    @EJB(name="jobBean")
     JobControlService jobBean;
-    @EJB
+    @EJB(name="repBean")
     RepositoryService repBean;
-    @EJB
+    @EJB(name="contentBean")
     ContentService contentBean;
     
     private int jobcount;
     private String toolConfigText;
     private TreeNode root;
     private TreeNode[] selectedItems;
-    private ArrayList<Job> runningJobs;
+    private ArrayList<JobProxy> runningJobs;
     private boolean editMode;
 
     /**
@@ -68,14 +65,14 @@ public class AdminBean {
     /**
      * @return the runningJobs
      */
-    public ArrayList<Job> getRunningJobs() {
+    public ArrayList<JobProxy> getRunningJobs() {
         return jobBean.getJobs();
     }
 
     /**
      * @param runningJobs the runningJobs to set
      */
-    public void setRunningJobs(ArrayList<Job> runningJobs) {
+    public void setRunningJobs(ArrayList<JobProxy> runningJobs) {
         this.runningJobs = runningJobs;
     }
 
@@ -157,7 +154,7 @@ public class AdminBean {
     
     @PostConstruct
     public void init() {
-        this.toolConfigText = jobBean.getToolConfig().html();
+        this.toolConfigText = jobBean.getToolConfig();
         this.root = convertToTreeNode(contentBean.getRepositoryContent());
         this.editMode=false;
     }
@@ -187,14 +184,7 @@ public class AdminBean {
     }
 
     public void changeToolConfig() {
-        try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(jobBean.getToolConfigPath()));
-            out.write(toolConfigText);
-            out.close();
-        } catch (IOException ex) {
-            Logger.getLogger(AdminBean.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        jobBean.parseTools();
+        jobBean.changeToolConfig(toolConfigText);
         this.editMode = false;
     }
     

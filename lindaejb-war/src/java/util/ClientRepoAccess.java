@@ -41,7 +41,7 @@ import org.apache.jackrabbit.rmi.server.ServerXASession;
 @Named
 public class ClientRepoAccess {
     
-    @EJB
+    @EJB(name="contentBean")
     ContentService contentBean;
 
     

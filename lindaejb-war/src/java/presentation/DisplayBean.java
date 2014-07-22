@@ -14,7 +14,10 @@ import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.StatementImpl;
@@ -48,9 +51,9 @@ public class DisplayBean {
     private String toolID;
     private String uri;
     private String answer;
-    @EJB
+    @EJB(name="repBean")
     RepositoryService repBean;
-    @EJB
+    @EJB(name="jobBean")
     JobControlService jobBean;
 
     /**
@@ -118,7 +121,8 @@ public class DisplayBean {
         try {
             String subject = "http://linda.west.uni-koblenz.de/datasets/" + nodeID + "/" + toolID + "/" + uri;
             Logger.getLogger(DisplayBean.class.getName()).log(Level.INFO, subject);
-            Element tool = jobBean.getToolConfig().getElementsByAttributeValue("id", toolID).first();
+            Document toolCfg = Jsoup.parse(jobBean.getToolConfig(), "", Parser.xmlParser());
+            Element tool = toolCfg.getElementsByAttributeValue("id", toolID).first();
             Elements outputfiles = tool.getElementsByTag("save");
             Repository myRepository = new SailRepository(new MemoryStore());
             myRepository.initialize();

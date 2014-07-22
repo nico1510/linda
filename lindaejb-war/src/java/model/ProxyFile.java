@@ -1,8 +1,9 @@
 package model;
 
 import java.io.InputStream;
+import java.io.Serializable;
 
-public class ProxyFile {
+public class ProxyFile implements Serializable {
 
 
     private String id;

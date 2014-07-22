@@ -11,7 +11,7 @@ import java.util.ArrayList;
  *
  * @author nico
  */
-public class Tool implements Serializable{
+public class Tool implements Serializable {
     
     private String toolID;
     private String displayname;

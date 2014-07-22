@@ -13,8 +13,6 @@ import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 import javax.jms.DeliveryMode;
 import javax.jms.JMSException;
 import javax.jms.MapMessage;
@@ -24,7 +22,10 @@ import javax.jms.QueueConnectionFactory;
 import javax.jms.QueueSender;
 import javax.jms.QueueSession;
 import org.apache.commons.io.FilenameUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.jsoup.select.Elements;
 
 /**
@@ -42,6 +43,8 @@ public class ToolLauncherBean implements ToolLauncherBeanService, Serializable {
     JobControlService jobBean;
     @EJB
     RepositoryService repBean;
+    @EJB
+    ProcessManagerService processManager;
     
     @Asynchronous
     @Override
@@ -51,9 +54,11 @@ public class ToolLauncherBean implements ToolLauncherBeanService, Serializable {
         String format = folder.get("text_rdfformat");
 
         try {
-            jobBean.addJob(jobID);
+            processManager.addJob(jobID);
+            
+            Document toolCfg = Jsoup.parse(jobBean.getToolConfig(), "", Parser.xmlParser());
 
-            Element tool = jobBean.getToolConfig().getElementsByAttributeValue("id", toolID).first();
+            Element tool = toolCfg.getElementsByAttributeValue("id", toolID).first();
             Elements inputs = tool.getElementsByTag("input");
             for (int i = 0; i < inputs.size(); i++) {
                 String isFileString = inputs.get(i).attr("file");
@@ -86,14 +91,14 @@ public class ToolLauncherBean implements ToolLauncherBeanService, Serializable {
                 connection.close();
 
             } catch (JMSException ex) {
-                jobBean.jobFinished(nodeID, toolID, false, null, null);
+                processManager.jobFinished(nodeID, toolID, false, null, null);
                 Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, ex);
             }
         } catch (JobAlreadyRunningException ex) {
-            jobBean.jobFinished(nodeID, toolID, false, null, null);
+            processManager.jobFinished(nodeID, toolID, false, null, null);
             Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NullPointerException ex) {
-            jobBean.jobFinished(nodeID, toolID, false, null, null);
+            processManager.jobFinished(nodeID, toolID, false, null, null);
             Logger.getLogger(ToolLauncherBean.class.getName()).log(Level.SEVERE, null, "NullPointException in ToolLauncherBean, so there's probably something wrong with tools.xml " + ex);
         }
     }

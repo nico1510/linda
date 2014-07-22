@@ -34,7 +34,7 @@ import org.apache.jackrabbit.commons.JcrUtils;
 @RequestScoped
 public class DownloadBean {
     
-    @EJB
+    @EJB(name="repBean")
     RepositoryService repBean;
     private String nodeID;
     private String fileID;
