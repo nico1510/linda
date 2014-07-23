@@ -56,6 +56,14 @@
                 <library dirs="200">
                     <file>${file.reference.virtjdbc3.jar}</file>
                 </library>
+                <library dirs="200">
+                    <file>${file.reference.slf4j-api-1.7.2.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
+                <library dirs="200">
+                    <file>${file.reference.slf4j-simple-1.7.2.jar}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
+                </library>
             </web-module-libraries>
             <web-module-additional-libraries/>
             <source-roots>

@@ -3,6 +3,4 @@
     <admin-object-resource enabled="true" jndi-name="jms/Queue"  res-type="javax.jms.Queue"  res-adapter="jmsra">
         <property name="Name" value="PhysicalQueue"/>
     </admin-object-resource>
-    <connector-connection-pool name="jms/QueueFactoryPool"  connection-definition-name="javax.jms.QueueConnectionFactory"  resource-adapter-name="jmsra"/>
-    <connector-resource enabled="true" jndi-name="jms/QueueFactory" pool-name="jms/QueueFactoryPool"  />
 </resources>

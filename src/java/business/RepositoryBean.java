@@ -23,7 +23,10 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Resource;
+import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 import javax.jcr.AccessDeniedException;
@@ -353,6 +356,9 @@ public class RepositoryBean implements RepositoryService, Serializable {
         Session session = createSession(true);
         try {
             for (int i = 0; i < itemPaths.length; i++) {
+                if(itemPaths[i].contains("schema.nt")){
+                    removeFromTripleStore(itemPaths[i]);
+                }
                 Item itemToDelete = session.getItem(itemPaths[i]);
                 itemToDelete.remove();
             }
@@ -468,5 +474,31 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 break;
         }
         return in;
+    }
+
+    @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
+    @Asynchronous
+    private void removeFromTripleStore(String schemaPath) {
+        Connection conn = null;
+        try {
+            conn = triplestore.getConnection();
+            Statement stmt = conn.createStatement();
+
+            String nodeID = schemaPath.split("/")[1];
+
+            String removeStmtString = "SPARQL DROP SILENT GRAPH <"+nodeID+">";
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, removeStmtString);
+
+            stmt.execute(removeStmtString);
+
+        } catch (SQLException ex) {
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }    
     }
 }
