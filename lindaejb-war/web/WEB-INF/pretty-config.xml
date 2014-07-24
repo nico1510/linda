@@ -28,6 +28,11 @@
 		<view-id value="/faces/about.xhtml" />
 	</url-mapping>
         
+	<url-mapping id="query">
+		<pattern value="/query" />
+		<view-id value="/faces/query.xhtml" />
+	</url-mapping>
+                
 	<url-mapping id="admin">
 		<pattern value="/admin" />
 		<view-id value="/faces/admin.xhtml" />

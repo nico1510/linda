@@ -13,6 +13,7 @@ import business.ToolLauncherBeanService;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +42,8 @@ public class DetailsBean implements Serializable {
     private boolean notifierVisible = false;
     private String email;
     private String lastJob;
+    private HashMap<String, Boolean> subscribeButtonVisibleMap;
+    private HashMap<String, Boolean> abortButtonVisibleMap;
     @EJB(name="repBean")
     RepositoryService repBean;
     @EJB(name="jobBean")
@@ -154,6 +157,8 @@ public class DetailsBean implements Serializable {
     public void init() {
         tools = jobBean.getTools();
         tagmodel = new DefaultTagCloudModel();
+        subscribeButtonVisibleMap = new HashMap<String, Boolean>();
+        abortButtonVisibleMap = new HashMap<String, Boolean>();
     }
 
     public String commitChanges() {
@@ -181,6 +186,7 @@ public class DetailsBean implements Serializable {
                 }
             }
         }
+        updateButtons();
     }
 
     public String deleteDataset() {
@@ -293,6 +299,13 @@ public class DetailsBean implements Serializable {
             return depTools + ")";
         }
     }
+    
+    public void updateButtons(){
+        for(Tool t:tools){
+            getSubscribeButtonVisibleMap().put(t.getToolID(), subscribeButtonVisible(t.getToolID()));
+            getAbortButtonVisibleMap().put(t.getToolID(), abortButtonVisible(t.getToolID()));
+        }
+    }
 
     public boolean subscribeButtonVisible(String toolID) {
         return containsJob(folderBean.getNodeid() + File.separator + toolID);
@@ -300,6 +313,34 @@ public class DetailsBean implements Serializable {
 
     public boolean abortButtonVisible(String toolID) {
         return userBean.getStartedJobs().contains(folderBean.getNodeid() + File.separator + toolID);
+    }
+
+    /**
+     * @return the subscribeButtonVisibleMap
+     */
+    public HashMap<String, Boolean> getSubscribeButtonVisibleMap() {
+        return subscribeButtonVisibleMap;
+    }
+
+    /**
+     * @param subscribeButtonVisibleMap the subscribeButtonVisibleMap to set
+     */
+    public void setSubscribeButtonVisibleMap(HashMap<String, Boolean> subscribeButtonVisibleMap) {
+        this.subscribeButtonVisibleMap = subscribeButtonVisibleMap;
+    }
+
+    /**
+     * @return the abortButtonVisibleMap
+     */
+    public HashMap<String, Boolean> getAbortButtonVisibleMap() {
+        return abortButtonVisibleMap;
+    }
+
+    /**
+     * @param abortButtonVisibleMap the abortButtonVisibleMap to set
+     */
+    public void setAbortButtonVisibleMap(HashMap<String, Boolean> abortButtonVisibleMap) {
+        this.abortButtonVisibleMap = abortButtonVisibleMap;
     }
 
 

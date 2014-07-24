@@ -57,6 +57,7 @@
                                                 onclick="bar.show()"
                                                 disabled="#{detailsBean.toolDisabled(tool)}"
                                                 icon="ui-icon ui-icon-wrench"
+                                                ajax="true"
                                                 update="@form">
                                     </p:menuitem>
                                 </c:forEach>
@@ -111,11 +112,11 @@
                                             <p:spacer width="3" />
                                         </c:forEach>
                                     </h:panelGroup>
-                                    <h:panelGroup rendered="#{detailsBean.subscribeButtonVisible(tool.toolID)}">
+                                    <h:panelGroup rendered="#{detailsBean.subscribeButtonVisibleMap.get(tool.toolID)}">
                                         <h:outputText value="processing    " />
                                         <p:commandButton value="abort"
                                                          action="#{detailsBean.killProcess(tool.toolID)}"
-                                                         rendered="#{detailsBean.abortButtonVisible(tool.toolID)}"
+                                                         rendered="#{detailsBean.abortButtonVisibleMap.get(tool.toolID)}"
                                                          onclick="bar.hide()"
                                                          icon="ui-icon ui-icon-cancel"
                                                          update="@form">

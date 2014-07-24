@@ -341,7 +341,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
         }
 
         // delete inactive files
-        walkAndRemove(fileNames, "/home/glassfish/glassfish3/storage/repository/datastore");
+        walkAndRemove(fileNames, "/data/storage/repository/datastore");
         Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Finished Repo Garbage Collection");
     }
 
