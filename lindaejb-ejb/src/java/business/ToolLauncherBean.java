@@ -46,7 +46,6 @@ public class ToolLauncherBean implements ToolLauncherBeanService, Serializable {
     @EJB
     ProcessManagerService processManager;
     
-    @Asynchronous
     @Override
     public void launchTool(String toolID, String jobID, LinkedHashMap<String, String> folder) {
 
