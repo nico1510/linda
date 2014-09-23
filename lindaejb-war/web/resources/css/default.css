@@ -67,3 +67,12 @@
 {
     height: 100%;
 }
+
+.container-linda {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+    min-width: 1000px;
+    width: 1170px;
+}
