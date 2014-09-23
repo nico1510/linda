@@ -37,8 +37,3 @@ Advanced / Wrap JDBC Objects :disabled
 sudo /etc/init.d/virtuoso-opensource-6.1 start
 
 
-// deployment
-=============
-
-EJB : restart 
-commons-compress-1.4.1.jar,jackrabbit-jcr-rmi-2.4.5.jar,commons-io-2.4.jar,jsoup-1.7.1.jar,Exec.jar,openrdf-sesame-2.7.0-beta1-onejar.jar,jackrabbit-jcr-commons-2.4.5.jar
