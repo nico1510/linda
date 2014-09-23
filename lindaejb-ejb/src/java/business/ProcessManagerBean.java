@@ -11,6 +11,8 @@ import java.io.File;
 import java.util.ArrayList;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
+import javax.ejb.Local;
+import javax.ejb.LocalBean;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
@@ -23,7 +25,8 @@ import org.apache.commons.exec.ExecuteWatchdog;
  */
 
 @Singleton
-public class ProcessManagerBean implements ProcessManagerService {
+@LocalBean
+public class ProcessManagerBean {
     
     @EJB 
     JobControlService jobBean;
@@ -36,7 +39,6 @@ public class ProcessManagerBean implements ProcessManagerService {
     /**
      * @return the jobs
      */
-    @Override
     public ArrayList<Job> getJobs() {
         return jobs;
     }
@@ -53,7 +55,6 @@ public class ProcessManagerBean implements ProcessManagerService {
         jobs = new ArrayList<Job>();
     }
     
-    @Override
     public void addWatchdog(String jobid, ExecuteWatchdog watchdog) {
         for (int i = 0; i < jobs.size(); i++) {
             if (jobs.get(i).getJobID().equals(jobid)) {
@@ -62,7 +63,6 @@ public class ProcessManagerBean implements ProcessManagerService {
         }
     }
     
-    @Override
     public ExecuteWatchdog getWatchdog(String jobid) {
         for (int i = 0; i < jobs.size(); i++) {
             if (jobs.get(i).getJobID().equals(jobid)) {
@@ -73,12 +73,10 @@ public class ProcessManagerBean implements ProcessManagerService {
     }    
     
 
-    @Override
     public void jobStarted(ExecuteWatchdog watchdog, String jobID) {
         addWatchdog(jobID, watchdog);
     }
 
-    @Override
     public void jobFinished(String nodeID, String toolID, boolean success, ArrayList<String> filePaths, String absolutePath) {
         String jobID = nodeID + File.separator + toolID;
         if (success) {
@@ -92,7 +90,6 @@ public class ProcessManagerBean implements ProcessManagerService {
     }
 
     @Lock(LockType.WRITE)
-    @Override
     public void addJob(String jobid) throws JobAlreadyRunningException {
         if (containsJob(jobid)) {
             throw new JobAlreadyRunningException();
@@ -103,7 +100,6 @@ public class ProcessManagerBean implements ProcessManagerService {
         }
     }
 
-    @Override
     public void removeJob(String jobid) {
         for (int i = 0; i < getJobs().size(); i++) {
             if (getJobs().get(i).getJobID().equals(jobid)) {
@@ -112,7 +108,6 @@ public class ProcessManagerBean implements ProcessManagerService {
         }
     }
 
-    @Override
     public boolean containsJob(String jobid) {
         for (int i = 0; i < jobs.size(); i++) {
             if (jobs.get(i).getJobID().equals(jobid)) {

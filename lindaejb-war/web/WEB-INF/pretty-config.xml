@@ -54,7 +54,13 @@
 	</url-mapping>
         
 	<url-mapping id="triples">
-		<pattern value="/#{nodeid}" />
+		<pattern value="/triples/#{nodeid}" />
 		<view-id value="/faces/triples.xhtml" />
 	</url-mapping>
+        
+	<url-mapping id="liteq">
+		<pattern value="/#{param1}/#{param2}" />
+		<view-id value="/lookup" />
+	</url-mapping>
+        
 </pretty-config>

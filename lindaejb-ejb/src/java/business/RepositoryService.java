@@ -5,6 +5,7 @@
 package business;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import javax.ejb.Remote;
 
@@ -29,4 +30,8 @@ public interface RepositoryService {
     
     public String queryTripleStore(String nodeID);
     
+    public String answerLiteqQuery(String query);
+    
+    public void resetCache();
+        
 }

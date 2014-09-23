@@ -48,7 +48,7 @@ public class ToolExecutor implements MessageListener, Serializable {
     FormatConverter Converter;
     
     @EJB
-    ProcessManagerService processManager;
+    ProcessManagerBean processManager;
 
     public ToolExecutor() {
     }

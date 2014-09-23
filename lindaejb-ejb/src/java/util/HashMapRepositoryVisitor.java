@@ -68,7 +68,7 @@ public class HashMapRepositoryVisitor implements ItemVisitor{
     public void visit(Node node) throws RepositoryException {
 
         String nodename = node.getName();
-        if (!nodename.equals("jcr:system")) {
+        if (!nodename.startsWith("jcr:") && !nodename.contains("liteq")) {
             
             if(!nodename.isEmpty()){
                 LinkedHashMap<String,String> newFolder = new LinkedHashMap<String,String>();

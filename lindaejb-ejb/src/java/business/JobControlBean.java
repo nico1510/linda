@@ -58,7 +58,7 @@ public class JobControlBean implements JobControlService {
     @EJB
     ToolResultHandlerService resultHandler;
     @EJB
-    ProcessManagerService processManager;
+    ProcessManagerBean processManager;
 
     /**
      * @return the toolConfig

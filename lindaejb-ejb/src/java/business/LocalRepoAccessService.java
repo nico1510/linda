@@ -20,5 +20,6 @@ public interface LocalRepoAccessService {
 
     String persistMeta(InputStream in, String nodeID, String fileName);
     Session createSession(boolean writeable);
+    String getLiteqQueryResult(String query);
 
 }

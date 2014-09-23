@@ -1,17 +1,22 @@
 package business;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -82,7 +87,8 @@ public class RepositoryBean implements RepositoryService, Serializable {
 
             String insertStmtString = "DB.DBA.TTLP (file_to_string_output ('"
                     + schemafilePath + "'), '', '"
-                    + nodeID.replaceAll("/", "") + "', 512)";
+                    + "index" + "', 512)";
+//                    + nodeID.replaceAll("/", "") + "', 512)";
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, insertStmtString);
 
             stmt.execute(insertStmtString);
@@ -377,5 +383,85 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 break;
         }
         return in;
+    }
+
+    @Override
+    public String answerLiteqQuery(String query) {
+        HashMap<String, ArrayList> responseMap = new HashMap<String, ArrayList>();
+        
+        String cachedResult = localRepoBean.getLiteqQueryResult(query);
+        
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+        
+        ArrayList result = new ArrayList();
+        responseMap.put("response", result);
+        
+        ResultSet rs;
+        Connection conn = null;
+        try {
+            conn = triplestore.getConnection();
+            Statement stmt = conn.createStatement();
+
+            boolean more = stmt.execute(query);
+            ResultSetMetaData data = stmt.getResultSet().getMetaData();
+            while (more) {
+                rs = stmt.getResultSet();
+                while (rs.next()) {
+                    String iri = "";
+                    for (int i = 1; i <= data.getColumnCount(); i++) {
+                        String s = rs.getString(i);
+                        Object o = rs.getObject(i);
+                        if (o instanceof VirtuosoExtendedString) {
+                            VirtuosoExtendedString vs = (VirtuosoExtendedString) o;
+                            if (vs.iriType == VirtuosoExtendedString.IRI && (vs.strType & 0x01) == 0x01) {
+                                iri = "<".concat(vs.str).concat(">");
+                            } else if (vs.iriType == VirtuosoExtendedString.BNODE) {
+                                iri = "<".concat(vs.str).concat(">");
+                            } else {
+                                iri = "\"".concat(vs.str).concat("\"");
+                            }
+                        } else if (o instanceof VirtuosoRdfBox) {
+                            VirtuosoRdfBox rb = (VirtuosoRdfBox) o;
+                            iri = rb.rb_box.toString().concat(" lang=").concat(rb.getLang()).concat(" type=").concat(rb.getType()).concat(" ");
+
+                        } else if (stmt.getResultSet().wasNull()) {
+                            iri = "NULL";
+                        } else {
+                            iri = s;
+                        }
+                    }
+                    Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, iri);
+                    result.add(iri);
+                }
+                more = stmt.getMoreResults();
+            }
+
+        } catch (SQLException ex) {
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+        Gson gson = new Gson(); 
+        String response = gson.toJson(responseMap);
+        storeResponseInCache(response, query);
+        
+        return response;
+    }
+
+    private void storeResponseInCache(String response, String query) {
+        int hash = query.hashCode();
+        localRepoBean.persistMeta(new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8)), "liteq", String.valueOf(hash));
+    }
+    
+    @Override
+    public void resetCache() {
+        deleteItems(new String[]{"/liteq"});
     }
 }
