@@ -8,6 +8,7 @@
             <web-module-libraries>
                 <library dirs="100">
                     <file>${reference.lindaejb-ejb.dist}</file>
+                    <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
                     <file>${file.reference.commons-fileupload-1.2.2.jar}</file>
