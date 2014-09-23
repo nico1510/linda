@@ -15,7 +15,7 @@ Einstellungen aus javamail.jpg
 
 // Jackrabbit
 =============
-create-connector-connection-pool --steadypoolsize 20 --maxpoolsize 100 --poolresize 2 --maxwait 60000 --raname jackrabbit-jca --connectiondefinition javax.jcr.Repository jcrPool --property homeDir=/home/glassfish/glassfish3/storage:bindSessionToTransaction=false
+create-connector-connection-pool --steadypoolsize 20 --maxpoolsize 100 --poolresize 2 --maxwait 60000 --raname jackrabbit-jca --connectiondefinition javax.jcr.Repository jcrPool --property homeDir=/data/storage:bindSessionToTransaction=false
 
 Transaction Support NoTransaction
 
@@ -30,6 +30,8 @@ create-jdbc-resource --connectionpoolid jdbc/Virtuoso triplestore
 Non Transactional Connections:  enabled
 Guaranteed : disabled
 Advanced / Wrap JDBC Objects :disabled
+
+/data/storage in config file unter dirsAllowed listen
 
 
 // start stop skripte
