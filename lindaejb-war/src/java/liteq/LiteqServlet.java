@@ -8,17 +8,11 @@ package liteq;
 import business.RepositoryService;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.primefaces.json.JSONException;
-import org.primefaces.json.JSONObject;
 
 /**
  *
@@ -80,7 +74,7 @@ public class LiteqServlet extends HttpServlet {
                 break;
         }
 
-        result = resetQuery? "{\"response\":\"cache reset\"}" : repBean.answerLiteqQuery(query);
+        result = resetQuery? "{\"response\":\"cache reset\"}" : repBean.answerLiteqQuery(query, true);
         try (PrintWriter out = response.getWriter()) {
             out.println(result);
         }
