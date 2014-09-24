@@ -75,7 +75,7 @@ public class LocalRepoAccessBean implements Serializable, LocalRepoAccessService
             Binary bfile = vf.createBinary(in);
             Node datasetNode;
             
-            if (!session.getRootNode().hasNode(nodeID)) {              // this is only the case for liteq props if the liteq node doesnt exist yet
+            if (!session.getRootNode().hasNode(nodeID)) {              // this is only the case for entity files if the liteq_entities node doesnt exist yet
                 datasetNode = session.getRootNode().addNode(nodeID);
             } else {
                 datasetNode = session.getNode(nodeID);
@@ -95,28 +95,34 @@ public class LocalRepoAccessBean implements Serializable, LocalRepoAccessService
             contentBean.updateContent();
         }
         return null;
-    }    
-
-    @Override
-    public String getLiteqQueryResult(String query) {
-        String cachedResult = null;
-        try {
-            String hash = String.valueOf(query.hashCode());
-            Session session = createSession(false);
-            Node liteqNode = session.getRootNode().getNode("liteq");
-            
-            if (liteqNode.hasProperty(hash)) {
-                Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.INFO, "returning cached response");
-                StringWriter writer = new StringWriter();
-                IOUtils.copy(liteqNode.getProperty(hash).getBinary().getStream(), writer, StandardCharsets.UTF_8.name());
-                cachedResult = writer.toString();
-            }
-        } catch (RepositoryException ex) {
-            Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        return cachedResult;
     }
+    
+    @Override
+    public String persistQueryResponse(String response, String queryHash) {
+        Session session = createSession(true);
+        try {
+
+            Node datasetNode;
+            
+            if (!session.getRootNode().hasNode("liteq_cache")) {              // this is only the case if the liteq node doesnt exist or cache was reseted
+                datasetNode = session.getRootNode().addNode("liteq_cache");
+            } else {
+                datasetNode = session.getNode("liteq_cache");
+            }
+            
+            Property metaProp = datasetNode.setProperty(queryHash, response);
+
+            session.save();
+            String metaPath = metaProp.getPath();
+
+            return metaPath;
+
+        } catch (RepositoryException ex) {
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            session.logout();
+            contentBean.updateContent();
+        }
+        return null;
+    }  
 }

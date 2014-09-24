@@ -114,6 +114,7 @@ public class ToolResultHandlerBean implements ToolResultHandlerService, Serializ
     public void handleSchemaResult(String nodeID, ArrayList<String> outputFiles) {
         String schemaFile = outputFiles.get(0);  // this is the schema.nt see tools.xml
         repBean.saveInTripleStore(nodeID + File.separator + schemaFile, nodeID);
+        repBean.moveEntitiesToRepo(nodeID);
     }
 
     private void handleFcaResult(String nodeID, ArrayList<String> outputFiles) {

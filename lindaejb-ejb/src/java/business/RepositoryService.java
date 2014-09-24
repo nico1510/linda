@@ -16,22 +16,17 @@ import javax.ejb.Remote;
 @Remote
 public interface RepositoryService {
     
-    public void changeFolder(LinkedHashMap<String,String> folder);
-    
-    public void deleteItems(String[] itemID);
-    
-    public ArrayList<LinkedHashMap<String, String>> getRepoContent();
-    
-    public String getPhysicalBinaryPath(String propPath);
-        
-    public void cleanup();
-
-    public void saveInTripleStore(String propPath, String nodeID);
-    
-    public String queryTripleStore(String nodeID);
-    
-    public String answerLiteqQuery(String query);
-    
-    public void resetCache();
+    void changeFolder(LinkedHashMap<String,String> folder);
+    void deleteItems(String[] itemID);
+    ArrayList<LinkedHashMap<String, String>> getRepoContent();
+    String getPhysicalBinaryPath(String propPath);    
+    void cleanup();
+    void saveInTripleStore(String propPath, String nodeID);
+    void moveEntitiesToRepo(String nodeID);
+    String queryTripleStore(String nodeID);
+    String answerLiteqQuery(String query, boolean useCache);
+    String getCachedLiteqQueryResult(String query);
+    String getLiteqEntityQueryResult(String eqClassURI);
+    void resetCache();
         
 }

@@ -1,6 +1,8 @@
 package business;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -8,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -49,6 +52,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import util.HashMapRepositoryVisitor;
 import virtuoso.jdbc3.VirtuosoExtendedString;
 import virtuoso.jdbc3.VirtuosoRdfBox;
@@ -87,8 +91,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
 
             String insertStmtString = "DB.DBA.TTLP (file_to_string_output ('"
                     + schemafilePath + "'), '', '"
-                    + "index" + "', 512)";
-//                    + nodeID.replaceAll("/", "") + "', 512)";
+                    + nodeID.replaceAll("/", "") + "', 512)";
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, insertStmtString);
 
             stmt.execute(insertStmtString);
@@ -104,20 +107,16 @@ public class RepositoryBean implements RepositoryService, Serializable {
         }
     }
     
+    
+    
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     @Asynchronous
-    private void removeFromTripleStore(String schemaPath) {
+    private void removeFromTripleStore(String removeQuery) {
         Connection conn = null;
         try {
             conn = triplestore.getConnection();
             Statement stmt = conn.createStatement();
-
-            String nodeID = schemaPath.split("/")[1];
-
-            String removeStmtString = "SPARQL DROP SILENT GRAPH <"+nodeID+">";
-            Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, removeStmtString);
-
-            stmt.execute(removeStmtString);
+            stmt.execute(removeQuery);
 
         } catch (SQLException ex) {
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
@@ -128,6 +127,23 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
             }
         }    
+    }
+    
+    @Asynchronous
+    private void removeEntitiesFromRepo(String nodeID) {
+        //TODO: query string
+        String entityQuery = "SPARQL SELECT datasource ids from <"+nodeID+">";
+        String entityResponse = answerLiteqQuery(entityQuery, false);
+        Gson gson = new Gson();
+        JsonObject responseMap = gson.fromJson(entityResponse, JsonObject.class);
+        JsonArray entities = responseMap.get("response").getAsJsonArray();
+        String[] propPaths = new String[entities.size()];
+        
+        for(int i=0; i<entities.size(); i++) {
+            propPaths[i] = "/liteq_entities/" + entities.get(i).getAsString();
+        }
+        
+        deleteItems(propPaths);
     }
     
     
@@ -285,9 +301,13 @@ public class RepositoryBean implements RepositoryService, Serializable {
     public void deleteItems(String[] itemPaths) {
         Session session = localRepoBean.createSession(true);
         try {
+            String nodeID;
             for (int i = 0; i < itemPaths.length; i++) {
                 if(itemPaths[i].contains("schema.nt")){
-                    removeFromTripleStore(itemPaths[i]);
+                    nodeID = itemPaths[i].split("/")[1];
+                    String removeStmtString = "SPARQL DROP SILENT GRAPH <"+nodeID+">";
+                    removeFromTripleStore(removeStmtString);
+                    removeEntitiesFromRepo(nodeID);
                 }
                 Item itemToDelete = session.getItem(itemPaths[i]);
                 itemToDelete.remove();
@@ -386,13 +406,15 @@ public class RepositoryBean implements RepositoryService, Serializable {
     }
 
     @Override
-    public String answerLiteqQuery(String query) {
+    public String answerLiteqQuery(String query, boolean useCache) {
         HashMap<String, ArrayList> responseMap = new HashMap<String, ArrayList>();
         
-        String cachedResult = localRepoBean.getLiteqQueryResult(query);
-        
-        if (cachedResult != null) {
-            return cachedResult;
+        if (useCache) {
+            String cachedResult = getCachedLiteqQueryResult(query);
+
+            if (cachedResult != null) {
+                return cachedResult;
+            }
         }
         
         ArrayList result = new ArrayList();
@@ -450,18 +472,90 @@ public class RepositoryBean implements RepositoryService, Serializable {
         
         Gson gson = new Gson(); 
         String response = gson.toJson(responseMap);
-        storeResponseInCache(response, query);
+        if (useCache) {
+            storeResponseInCache(response, query);
+        }
         
         return response;
+    }
+    
+    private String answerEntityQuery(String eqCluster) {
+        return getLiteqEntityQueryResult(eqCluster);
     }
 
     private void storeResponseInCache(String response, String query) {
         int hash = query.hashCode();
-        localRepoBean.persistMeta(new ByteArrayInputStream(response.getBytes(StandardCharsets.UTF_8)), "liteq", String.valueOf(hash));
+        localRepoBean.persistQueryResponse(response, String.valueOf(hash));
     }
     
     @Override
     public void resetCache() {
-        deleteItems(new String[]{"/liteq"});
+        deleteItems(new String[]{"/liteq_cache"});
     }
+
+    @Override
+    public void moveEntitiesToRepo(String nodeID) {
+        String namedGraphID = nodeID.replaceAll("/", "");
+        //TODO: query string : key : eqc value : arraylist of entities
+        String entityQuery = "SPARQL SELECT datasource triples from <"+namedGraphID+">";
+        String entityResponse = answerLiteqQuery(entityQuery, false);
+        Gson gson = new Gson();
+        JsonObject responseMap = gson.fromJson(entityResponse, JsonObject.class);
+        JsonObject entityMap = responseMap.get("response").getAsJsonObject();
+        
+        String datasourceID;
+        JsonObject response;
+        
+        for (Entry<String, JsonElement> e : entityMap.entrySet()) {
+            datasourceID = e.getKey();
+            response = new JsonObject();
+            response.add("response", e.getValue());
+            localRepoBean.persistMeta(new ByteArrayInputStream(response.getAsString().getBytes(StandardCharsets.UTF_8)), "liteq_entities", datasourceID);
+        }
+        
+        //TODO : query string
+        String removeQuery = "SPARQL delete datasource triples from <"+namedGraphID+">";
+        removeFromTripleStore(removeQuery);
+    }
+
+    @Override
+    public String getCachedLiteqQueryResult(String query) {
+        String cachedResult = null;
+        try {
+            String hash = String.valueOf(query.hashCode());
+            Session session = localRepoBean.createSession(false);
+            Node liteqNode = session.getRootNode().getNode("liteq_cache");
+            
+            if (liteqNode.hasProperty(hash)) {
+                Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.INFO, "returning cached response");
+                 cachedResult = liteqNode.getProperty(hash).getString();
+            }
+        } catch (RepositoryException ex) {
+            Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return cachedResult;
+    }
+    
+    @Override
+    public String getLiteqEntityQueryResult(String eqClassURI) {
+        String entities = null;
+        try {
+            Session session = localRepoBean.createSession(false);
+            Node entityNode = session.getRootNode().getNode("liteq_entities");
+            
+            if (entityNode.hasProperty(eqClassURI)) {
+                StringWriter writer = new StringWriter();
+                IOUtils.copy(entityNode.getProperty(eqClassURI).getBinary().getStream(), writer, StandardCharsets.UTF_8.name());
+                entities = writer.toString();
+            }
+        } catch (RepositoryException ex) {
+            Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return entities;
+    }
+
 }
