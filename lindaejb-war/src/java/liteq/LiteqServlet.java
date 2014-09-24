@@ -38,14 +38,14 @@ public class LiteqServlet extends HttpServlet {
 
         String param2 = request.getParameter("param2");
         String param1 = request.getParameter("param1");
-        String query = "";
-        String result;
-        boolean resetQuery = false;
+        String query;
+        String result = "{\"response\":\"fail\"}";
 
         switch (param2) {
             case "types":
                 if (param1.equals("*")) {
                     query = "sparql select distinct ?cls WHERE {[] rdf:type ?cls .}";
+                    result = repBean.answerLiteqQuery(query, true);
                 } else {
                     // get types for type cluster param1
                 }
@@ -55,7 +55,7 @@ public class LiteqServlet extends HttpServlet {
                 break;
 
             case "entities":
-                // get all entitities for equivalence class param1
+                result = repBean.getLiteqEntityQueryResult(param1);
                 break;
 
             case "properties":
@@ -69,12 +69,11 @@ public class LiteqServlet extends HttpServlet {
                 // reset cache
                 if(param1.equals("cache")) {
                     repBean.resetCache();
-                    resetQuery = true;
                 }
+                result = "{\"response\":\"cache reset\"}";
                 break;
         }
 
-        result = resetQuery? "{\"response\":\"cache reset\"}" : repBean.answerLiteqQuery(query, true);
         try (PrintWriter out = response.getWriter()) {
             out.println(result);
         }

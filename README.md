@@ -33,6 +33,7 @@ Advanced / Wrap JDBC Objects :disabled
 
 /data/storage in config file unter dirsAllowed listen
 
+/usr/bin/isql-vt
 
 // start stop skripte
 =====================
