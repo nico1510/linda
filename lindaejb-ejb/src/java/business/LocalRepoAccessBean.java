@@ -107,7 +107,7 @@ public class LocalRepoAccessBean implements Serializable, LocalRepoAccessService
             if (!session.getRootNode().hasNode("liteq_cache")) {              // this is only the case if the liteq node doesnt exist or cache was reseted
                 datasetNode = session.getRootNode().addNode("liteq_cache");
             } else {
-                datasetNode = session.getNode("liteq_cache");
+                datasetNode = session.getRootNode().getNode("liteq_cache");
             }
             
             Property metaProp = datasetNode.setProperty(queryHash, response);

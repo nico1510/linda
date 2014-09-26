@@ -130,7 +130,6 @@ public class RepositoryBean implements RepositoryService, Serializable {
 
     @Asynchronous
     private void removeEntitiesFromRepo(String nodeID) {
-        //TODO: query string
         String entityQuery = "SPARQL SELECT DISTINCT ?eqc FROM <" + nodeID + "> WHERE "
                 + "{ ?eqc a <http://schemex.west.uni-koblenz.de/EquivalenceClass> }";
         String entityResponse = answerLiteqQuery(entityQuery, false);
@@ -530,17 +529,16 @@ public class RepositoryBean implements RepositoryService, Serializable {
         JsonObject responseMap = gson.fromJson(entityResponse, JsonObject.class);
         JsonObject entityMap = responseMap.get("response").getAsJsonObject();
 
-        String datasourceID;
+        String eqClassHash;
         JsonObject response;
 
         for (Entry<String, JsonElement> e : entityMap.entrySet()) {
-            datasourceID = e.getKey();
+            eqClassHash = e.getKey();
             response = new JsonObject();
             response.add("response", e.getValue());
-            localRepoBean.persistMeta(new ByteArrayInputStream(gson.toJson(response).getBytes(StandardCharsets.UTF_8)), "liteq_entities", datasourceID);
+            localRepoBean.persistMeta(new ByteArrayInputStream(gson.toJson(response).getBytes(StandardCharsets.UTF_8)), "liteq_entities", eqClassHash);
         }
 
-        //TODO : query string
         String removeQuery = "sparql define input:default-graph-uri <"
                 + namedGraphID + ">  DELETE { ?pred ?property ?value } WHERE "
                 + "{ ?pred ?property ?value ."
@@ -569,7 +567,11 @@ public class RepositoryBean implements RepositoryService, Serializable {
 
     @Override
     public String getLiteqEntityQueryResult(String eqClassURI) {
-        String entities = null;
+        JsonObject nullResponse = new JsonObject();
+        nullResponse.add("response", new JsonArray());
+        Gson gson = new Gson();
+        String entities = gson.toJson(nullResponse);
+        
         try {
             Session session = localRepoBean.createSession(false);
             Node entityNode = session.getRootNode().getNode("liteq_entities");
