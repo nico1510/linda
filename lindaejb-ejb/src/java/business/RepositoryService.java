@@ -28,5 +28,6 @@ public interface RepositoryService {
     String getCachedLiteqQueryResult(String query);
     String getLiteqEntityQueryResult(String eqClassURI);
     void resetCache();
+    void resetEntities();
         
 }

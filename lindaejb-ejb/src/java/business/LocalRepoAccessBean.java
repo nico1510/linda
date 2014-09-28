@@ -6,11 +6,8 @@
 
 package business;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +24,6 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.ValueFactory;
-import org.apache.commons.io.IOUtils;
 
 /**
  *
@@ -73,15 +69,15 @@ public class LocalRepoAccessBean implements Serializable, LocalRepoAccessService
         try {
             ValueFactory vf = session.getValueFactory();
             Binary bfile = vf.createBinary(in);
-            Node datasetNode;
+            Node parentNode;
             
-            if (!session.getRootNode().hasNode(nodeID)) {              // this is only the case for entity files if the liteq_entities node doesnt exist yet
-                datasetNode = session.getRootNode().addNode(nodeID);
+            if (!session.nodeExists(nodeID)) {              // this is only the case for entity files if the liteq_entities node doesnt exist yet
+                parentNode = session.getRootNode().addNode(nodeID.replace("/", ""));  // the replace changes /liteq_entities to liteq_entities
             } else {
-                datasetNode = session.getNode(nodeID);
+                parentNode = session.getNode(nodeID);
             }
             
-            Property metaProp = datasetNode.setProperty(fileName, bfile);
+            Property metaProp = parentNode.setProperty(fileName, bfile);
 
             session.save();
             String metaPath = metaProp.getPath();
@@ -121,7 +117,6 @@ public class LocalRepoAccessBean implements Serializable, LocalRepoAccessService
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             session.logout();
-            contentBean.updateContent();
         }
         return null;
     }  
