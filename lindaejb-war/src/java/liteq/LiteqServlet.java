@@ -8,6 +8,8 @@ package liteq;
 import business.RepositoryService;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -38,7 +40,7 @@ public class LiteqServlet extends HttpServlet {
 
         String param2 = request.getParameter("param2");
         String param1 = request.getParameter("param1");
-        String query;
+        String query = "";
         String result = "{\"response\":\"fail\"}";
 
         switch (param2) {
@@ -91,10 +93,14 @@ public class LiteqServlet extends HttpServlet {
                 // reset cache
                 if (param1.equals("cache")) {
                     repBean.resetCache();
+                } else if (param1.equals("entities")) {
+                    repBean.resetEntities();
                 }
                 result = "{\"response\":\"cache reset\"}";
                 break;
         }
+        
+        Logger.getLogger(LiteqServlet.class.getName()).log(Level.INFO, query);
 
         try (PrintWriter out = response.getWriter()) {
             out.println(result);
