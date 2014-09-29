@@ -39,6 +39,7 @@ import javax.jcr.Item;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -283,7 +284,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
         try {
             String nodeID;
             for (int i = 0; i < itemPaths.length; i++) {
-                if (itemPaths[i].contains("schema.nt")) {
+                if (itemPaths[i].contains("schema.nt") || itemPaths[i].split("/").length == 2) {
                     nodeID = itemPaths[i].split("/")[1];
                     String removeStmtString = "SPARQL DROP SILENT GRAPH <" + nodeID + ">";
                     removeFromTripleStore(removeStmtString);
@@ -340,20 +341,21 @@ public class RepositoryBean implements RepositoryService, Serializable {
     public void cleanup() {
         Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Running Repo Garbage Collection");
         // get all active files
-        HashMapRepositoryVisitor repVisitor = new HashMapRepositoryVisitor();
         ArrayList<LinkedHashMap<String, String>> repositoryContent = getRepoContent();
+        ArrayList<String> liteqEntities = getLiteqEntityFiles();
 
-        ArrayList<String> fileNames = new ArrayList<String>();
+        ArrayList<String> keepFiles = new ArrayList<String>();
+        keepFiles.addAll(liteqEntities);
         for (LinkedHashMap<String, String> node : repositoryContent) {
             for (Entry<String, String> e : node.entrySet()) {
                 if (!e.getKey().startsWith("text_")) {
-                    fileNames.add(getPhysicalBinaryPath(e.getValue()));
+                    keepFiles.add(getPhysicalBinaryPath(e.getValue()));
                 }
             }
         }
 
         // delete inactive files
-        walkAndRemove(fileNames, "/data/storage/repository/datastore");
+        walkAndRemove(keepFiles, "/data/storage/repository/datastore");
         Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "Finished Repo Garbage Collection");
     }
 
@@ -564,9 +566,6 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 String allEntities = writer.toString();
                 JsonObject responseMap = gson.fromJson(allEntities, JsonObject.class);
                 JsonObject entityMap = responseMap.get("response").getAsJsonObject();
-                for (Entry<String, JsonElement> e : entityMap.entrySet()) {
-                    Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, e.getKey());
-                }
                 entities = gson.toJson(entityMap.get("<http://schemex.west.uni-koblenz.de/" + eqClassURI + ">"));
             }
         } catch (RepositoryException ex) {
@@ -583,6 +582,30 @@ public class RepositoryBean implements RepositoryService, Serializable {
     @Override
     public void resetEntities() {
         deleteItems(new String[]{"/liteq_entities"});
+    }
+
+    private ArrayList<String> getLiteqEntityFiles() {
+        Session session = localRepoBean.createSession(false);
+        ArrayList<String> entityFiles = new ArrayList<>();
+        
+        try {
+            Node entityNode = session.getRootNode().getNode("liteq_entities");
+            PropertyIterator propIt = entityNode.getProperties();
+            Property prop;
+            while(propIt.hasNext()) {
+                prop = propIt.nextProperty();
+                String entityFilePath = getPhysicalBinaryPath(prop.getPath());
+                entityFiles.add(entityFilePath);
+                Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, entityFilePath);
+            }
+            
+        } catch (RepositoryException ex) {
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            session.logout();
+        }
+        
+        return entityFiles;
     }
 
 }
