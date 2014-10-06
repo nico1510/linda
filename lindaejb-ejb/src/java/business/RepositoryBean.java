@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -549,9 +551,15 @@ public class RepositoryBean implements RepositoryService, Serializable {
         nullResponse.add("response", new JsonArray());
         Gson gson = new Gson();
         String entities = gson.toJson(nullResponse);
+        String decodedUri = null;
+        try {
+            decodedUri = URLDecoder.decode(eqClassURI, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         String getGraphQuery = "sparql select distinct ?g"
-                + " where { GRAPH ?g { <http://schemex.west.uni-koblenz.de/" + eqClassURI + "> ?p ?o } "
+                + " where { GRAPH ?g { <" + decodedUri + "> ?p ?o } "
                 + "}";
         JsonObject graphQueryResponse = gson.fromJson(answerLiteqQuery(getGraphQuery, false), JsonObject.class);
         String graph = graphQueryResponse.get("response").getAsJsonArray().get(0).getAsString().replace("<", "").replace(">", "");
@@ -566,7 +574,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 String allEntities = writer.toString();
                 JsonObject responseMap = gson.fromJson(allEntities, JsonObject.class);
                 JsonObject entityMap = responseMap.get("response").getAsJsonObject();
-                entities = gson.toJson(entityMap.get("<http://schemex.west.uni-koblenz.de/" + eqClassURI + ">"));
+                entities = gson.toJson(entityMap.get("<" + decodedUri + ">"));
             }
         } catch (RepositoryException ex) {
             Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.SEVERE, null, ex);

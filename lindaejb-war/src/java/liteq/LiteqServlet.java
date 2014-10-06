@@ -9,8 +9,6 @@ import business.RepositoryService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLDecoder;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -39,14 +37,14 @@ public class LiteqServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("application/json;charset=UTF-8");
 
-        String param1 = request.getParameter("param1");
-        String param2 = URLDecoder.decode(request.getParameter("param2"), "UTF-8" );
+        String get = request.getParameter("get");
+        String uri = URLDecoder.decode(request.getParameter("uri"), "UTF-8" );
         String query = "";
         String result = "{\"response\":\"fail\"}";
 
-        switch (param1) {
+        switch (get) {
             case "types":
-                if (param2.equals("*")) {
+                if (uri.equals("*")) {
                     query = "sparql select distinct ?type WHERE "
                             + "{ ?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> ."
                             + "?tc <http://schemex.west.uni-koblenz.de/hasClass> ?type .}";
@@ -54,36 +52,36 @@ public class LiteqServlet extends HttpServlet {
                 } else {
                     // get types for type cluster param1
                     query = "sparql select ?type WHERE "
-                            + "{ <" + param2 + "> a <http://schemex.west.uni-koblenz.de/TypeCluster> ."
-                            + " <" + param2 + "> <http://schemex.west.uni-koblenz.de/hasClass> ?type .}";
+                            + "{ <" + uri + "> a <http://schemex.west.uni-koblenz.de/TypeCluster> ."
+                            + " <" + uri + "> <http://schemex.west.uni-koblenz.de/hasClass> ?type .}";
                     result = repBean.answerLiteqQuery(query, true);
                 }
                 break;
             case "tc":
                     query = "sparql select distinct ?tc WHERE "
                             + "{ ?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> ."
-                            + "?tc <http://schemex.west.uni-koblenz.de/hasClass> <" + param2 + "> .}";
+                            + "?tc <http://schemex.west.uni-koblenz.de/hasClass> <" + uri + "> .}";
                     result = repBean.answerLiteqQuery(query, true);
                     break;
             case "eqc":
                 // get all equivalence classes for type cluster param1
                 query = "sparql select ?eqc WHERE "
-                        + "{ <" + param2 + "> a <http://schemex.west.uni-koblenz.de/TypeCluster> ."
+                        + "{ <" + uri + "> a <http://schemex.west.uni-koblenz.de/TypeCluster> ."
                         + " ?eqc a <http://schemex.west.uni-koblenz.de/EquivalenceClass> ."
-                        + " <" + param2 + "> <http://schemex.west.uni-koblenz.de/hasSubset> ?eqc .}";
+                        + " <" + uri + "> <http://schemex.west.uni-koblenz.de/hasSubset> ?eqc .}";
                 result = repBean.answerLiteqQuery(query, true);
                 break;
 
             case "entities":
-                result = repBean.getLiteqEntityQueryResult(param1);
+                result = repBean.getLiteqEntityQueryResult(uri);
                 break;
 
             case "properties":
                 // get all properties for equivalence class param1
                 query = "sparql select ?prop WHERE { "
                         + "?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> . "
-                        + "<" + param2 + "> a <http://schemex.west.uni-koblenz.de/EquivalenceClass> . "
-                        + "<" + param2 + "> ?prop ?tc . }";
+                        + "<" + uri + "> a <http://schemex.west.uni-koblenz.de/EquivalenceClass> . "
+                        + "<" + uri + "> ?prop ?tc . }";
                 result = repBean.answerLiteqQuery(query, true);
                 break;
 
@@ -91,13 +89,13 @@ public class LiteqServlet extends HttpServlet {
                 // get all mappings for equivalence class param1
                 query = "sparql select ?tc, ?prop WHERE { "
                         + "?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> . "
-                        + "<" + param2 + "> a <http://schemex.west.uni-koblenz.de/EquivalenceClass> . "
-                        + "<" + param2 + "> ?prop ?tc . }";
+                        + "<" + uri + "> a <http://schemex.west.uni-koblenz.de/EquivalenceClass> . "
+                        + "<" + uri + "> ?prop ?tc . }";
                 result = repBean.answerLiteqQuery(query, true);
                 break;
             case "reset":
                 // reset cache
-                if (param2.equals("cache")) {
+                if (uri.equals("cache")) {
                     repBean.resetCache();
                 } 
 //                else if (param2.equals("entities")) {
@@ -107,7 +105,6 @@ public class LiteqServlet extends HttpServlet {
                 break;
         }
         
-        Logger.getLogger(LiteqServlet.class.getName()).log(Level.INFO, query);
 
         try (PrintWriter out = response.getWriter()) {
             out.println(result);
