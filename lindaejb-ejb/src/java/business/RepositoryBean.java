@@ -129,7 +129,6 @@ public class RepositoryBean implements RepositoryService, Serializable {
         }
     }
 
-
     @Override
     public String queryTripleStore(String nodeID) {
         ResultSet rs;
@@ -455,7 +454,11 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 }
                 more = stmt.getMoreResults();
             }
+            response.add("response", result);
 
+            if (useCache) {
+                storeResponseInCache(gson.toJson(response), query);
+            }
         } catch (SQLException ex) {
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
@@ -464,12 +467,6 @@ public class RepositoryBean implements RepositoryService, Serializable {
             } catch (SQLException ex) {
                 Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
-
-        response.add("response", result);
-
-        if (useCache) {
-            storeResponseInCache(gson.toJson(response), query);
         }
 
         return gson.toJson(response);
@@ -515,7 +512,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
         String entityResponse = answerLiteqQuery(entityQuery, false);
 
         String metaPath = localRepoBean.persistMeta(new ByteArrayInputStream(entityResponse.getBytes(StandardCharsets.UTF_8)), "/liteq_entities", namedGraphID);
-        
+
         String removeQuery = "sparql define input:default-graph-uri <"
                 + namedGraphID + ">  DELETE { ?pred ?property ?value } WHERE "
                 + "{ ?pred ?property ?value ."
@@ -563,7 +560,7 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 + "}";
         JsonObject graphQueryResponse = gson.fromJson(answerLiteqQuery(getGraphQuery, false), JsonObject.class);
         String graph = graphQueryResponse.get("response").getAsJsonArray().get(0).getAsString().replace("<", "").replace(">", "");
-        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "GRAPH : "+graph);
+        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "GRAPH : " + graph);
 
         try {
             Node entityNode = session.getRootNode().getNode("liteq_entities");
@@ -595,24 +592,24 @@ public class RepositoryBean implements RepositoryService, Serializable {
     private ArrayList<String> getLiteqEntityFiles() {
         Session session = localRepoBean.createSession(false);
         ArrayList<String> entityFiles = new ArrayList<>();
-        
+
         try {
             Node entityNode = session.getRootNode().getNode("liteq_entities");
             PropertyIterator propIt = entityNode.getProperties();
             Property prop;
-            while(propIt.hasNext()) {
+            while (propIt.hasNext()) {
                 prop = propIt.nextProperty();
                 String entityFilePath = getPhysicalBinaryPath(prop.getPath());
                 entityFiles.add(entityFilePath);
                 Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, entityFilePath);
             }
-            
+
         } catch (RepositoryException ex) {
             Logger.getLogger(RepositoryBean.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             session.logout();
         }
-        
+
         return entityFiles;
     }
 

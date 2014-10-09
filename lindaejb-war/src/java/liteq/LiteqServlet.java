@@ -1,19 +1,25 @@
+package liteq;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package liteq;
 
 import business.RepositoryService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLDecoder;
+import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.primefaces.json.JSONArray;
+import org.primefaces.json.JSONException;
+import org.primefaces.json.JSONObject;
 
 /**
  *
@@ -38,7 +44,7 @@ public class LiteqServlet extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
 
         String get = request.getParameter("get");
-        String uri = URLDecoder.decode(request.getParameter("uri"), "UTF-8" );
+        String uri = URLDecoder.decode(request.getParameter("uri"), "UTF-8");
         String query = "";
         String result = "{\"response\":\"fail\"}";
 
@@ -58,11 +64,11 @@ public class LiteqServlet extends HttpServlet {
                 }
                 break;
             case "tc":
-                    query = "sparql select distinct ?tc WHERE "
-                            + "{ ?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> ."
-                            + "?tc <http://schemex.west.uni-koblenz.de/hasClass> <" + uri + "> .}";
-                    result = repBean.answerLiteqQuery(query, true);
-                    break;
+                query = "sparql select distinct ?tc WHERE "
+                        + "{ ?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> ."
+                        + "?tc <http://schemex.west.uni-koblenz.de/hasClass> <" + uri + "> .}";
+                result = repBean.answerLiteqQuery(query, true);
+                break;
             case "eqc":
                 // get all equivalence classes for type cluster param1
                 query = "sparql select ?eqc WHERE "
@@ -91,20 +97,19 @@ public class LiteqServlet extends HttpServlet {
                         + "?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> . "
                         + "<" + uri + "> a <http://schemex.west.uni-koblenz.de/EquivalenceClass> . "
                         + "<" + uri + "> ?prop ?tc . }";
-                result = repBean.answerLiteqQuery(query, true);
+                result = convertToArray(repBean.answerLiteqQuery(query, true));
                 break;
             case "reset":
                 // reset cache
                 if (uri.equals("cache")) {
                     repBean.resetCache();
-                } 
+                }
 //                else if (param2.equals("entities")) {
 //                    repBean.resetEntities();
 //                }
                 result = "{\"response\":\"cache reset\"}";
                 break;
         }
-        
 
         try (PrintWriter out = response.getWriter()) {
             out.println(result);
@@ -150,5 +155,29 @@ public class LiteqServlet extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
+    private String convertToArray(String result) {
+        try {
+            JSONObject jsonResult = new JSONObject(result);
+            JSONObject response = jsonResult.getJSONObject("response");
+            JSONArray arrayResponse = new JSONArray();
+            Iterator it = response.keys();
+            while (it.hasNext()) {
+                String typeCluster = (String) it.next();
+                JSONArray arrayKey = new JSONArray();
+                arrayKey.put(typeCluster);
+                JSONArray props = response.getJSONArray(typeCluster);
+                JSONArray containerArray = new JSONArray();
+                containerArray.put(arrayKey);
+                containerArray.put(props);
+                arrayResponse.put(containerArray);
+            }
+            jsonResult.put("response", arrayResponse);
+            return jsonResult.toString();
+        } catch (JSONException ex) {
+            Logger.getLogger(LiteqServlet.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
 
 }
