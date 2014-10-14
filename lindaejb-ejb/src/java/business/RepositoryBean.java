@@ -559,9 +559,14 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 + " where { GRAPH ?g { <" + decodedUri + "> ?p ?o } "
                 + "}";
         JsonObject graphQueryResponse = gson.fromJson(answerLiteqQuery(getGraphQuery, false), JsonObject.class);
-        String graph = graphQueryResponse.get("response").getAsJsonArray().get(0).getAsString().replace("<", "").replace(">", "");
-        Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "GRAPH : " + graph);
-
+        JsonArray graphArray = graphQueryResponse.get("response").getAsJsonArray();
+        String graph;
+        if(graphArray.size() > 0) {
+            graph = graphArray.get(0).getAsString().replace("<", "").replace(">", "");
+            Logger.getLogger(RepositoryBean.class.getName()).log(Level.INFO, "GRAPH : " + graph);
+        } else {
+            return entities;
+        }
         try {
             Node entityNode = session.getRootNode().getNode("liteq_entities");
 
@@ -572,7 +577,8 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 JsonObject responseMap = gson.fromJson(allEntities, JsonObject.class);
                 JsonObject entityMap = responseMap.get("response").getAsJsonObject();
                 JsonObject entityResponse = new JsonObject();
-                entityResponse.add("response", entityMap.get("<" + decodedUri + ">"));
+                JsonElement entityArray = entityMap.get("<" + decodedUri + ">");
+                entityResponse.add("response", (entityArray==null)? new JsonArray() : entityArray );
                 entities = gson.toJson(entityResponse);
             }
         } catch (RepositoryException ex) {
