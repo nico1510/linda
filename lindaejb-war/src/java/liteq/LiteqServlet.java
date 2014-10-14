@@ -79,7 +79,7 @@ public class LiteqServlet extends HttpServlet {
                 break;
             case "eqcForProperty":
                 // get equivalence classes for property uri
-                query = "sparql select ?eqc WHERE { "
+                query = "sparql select distinct ?eqc WHERE { "
                         + "?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> . "
                         + "?eqc a <http://schemex.west.uni-koblenz.de/EquivalenceClass> . "
                         + "?eqc <" + uri + "> ?tc . }";
