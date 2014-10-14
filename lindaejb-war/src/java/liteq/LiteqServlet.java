@@ -77,7 +77,14 @@ public class LiteqServlet extends HttpServlet {
                         + " <" + uri + "> <http://schemex.west.uni-koblenz.de/hasSubset> ?eqc .}";
                 result = repBean.answerLiteqQuery(query, true);
                 break;
-
+            case "eqcForProperty":
+                // get equivalence classes for property uri
+                query = "sparql select ?eqc WHERE { "
+                        + "?tc a <http://schemex.west.uni-koblenz.de/TypeCluster> . "
+                        + "?eqc a <http://schemex.west.uni-koblenz.de/EquivalenceClass> . "
+                        + "?eqc <" + uri + "> ?tc . }";
+                result = repBean.answerLiteqQuery(query, true);
+                break;  
             case "entities":
                 result = repBean.getLiteqEntityQueryResult(uri);
                 break;

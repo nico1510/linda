@@ -571,7 +571,9 @@ public class RepositoryBean implements RepositoryService, Serializable {
                 String allEntities = writer.toString();
                 JsonObject responseMap = gson.fromJson(allEntities, JsonObject.class);
                 JsonObject entityMap = responseMap.get("response").getAsJsonObject();
-                entities = gson.toJson(entityMap.get("<" + decodedUri + ">"));
+                JsonObject entityResponse = new JsonObject();
+                entityResponse.add("response", entityMap.get("<" + decodedUri + ">"));
+                entities = gson.toJson(entityResponse);
             }
         } catch (RepositoryException ex) {
             Logger.getLogger(LocalRepoAccessBean.class.getName()).log(Level.SEVERE, null, ex);
