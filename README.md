@@ -35,6 +35,8 @@ Advanced / Wrap JDBC Objects :disabled
 
 /usr/bin/isql-vt
 
+db location : /var/lib/virtuoso-opensource-6.1/db
+
 // start stop skripte
 =====================
 sudo /etc/init.d/virtuoso-opensource-6.1 start
