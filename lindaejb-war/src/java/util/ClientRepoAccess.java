@@ -57,7 +57,7 @@ public class ClientRepoAccess {
         Session session = null;
 
         try {
-            Repository repository = JcrUtils.getRepository("rmi://webschemex.west.uni-koblenz.de:1100/jackrabbit");
+            Repository repository = JcrUtils.getRepository("rmi://"+StaticInformation.serverAddress+":1100/jackrabbit");
             session = repository.login(new SimpleCredentials(UUID.randomUUID().toString(), "".toCharArray()), null);
             ValueFactory vf = session.getValueFactory();
             Binary bfile = vf.createBinary(in);
